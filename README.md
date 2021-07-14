@@ -3,6 +3,7 @@
 C# .NET Core Template repository desenvolved by using technologies, such as:
 
 - ASP.NET Core
+- Razor Pages
 - EF Core 5
 - Swagger
 - JWT Authentication

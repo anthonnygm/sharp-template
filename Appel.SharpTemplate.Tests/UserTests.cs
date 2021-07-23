@@ -26,15 +26,16 @@ namespace Appel.SharpTemplate.Tests
         [Fact]
         public async Task UserValidate_Authenticate_Success()
         {
-            var user = CreateDefaultUser();
-
-            var service = new UserService(SharpTemplateContext, AppSettings);
-            await service.RegisterAsync(user);
+            var userRegisterDTO = CreateDefaultUser();
 
             var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterDTO, UserAuthenticateDTO>()));
+            var authenticateDTO = mapper.Map<UserAuthenticateDTO>(userRegisterDTO);
 
-            var validator = new UserAuthenticateDTOValidator(SharpTemplateContext);
-            var result = await validator.ValidateAsync(mapper.Map<UserAuthenticateDTO>(user));
+            var service = new UserService(SharpTemplateContext, AppSettings);
+            await service.RegisterAsync(userRegisterDTO);
+
+            var validator = new UserAuthenticateDTOValidator(SharpTemplateContext, AppSettings);
+            var result = await validator.ValidateAsync(authenticateDTO);
 
             Assert.True(result.IsValid);
         }
@@ -48,7 +49,7 @@ namespace Appel.SharpTemplate.Tests
                 Password = "12345678"
             };
 
-            var validator = new UserAuthenticateDTOValidator(SharpTemplateContext);
+            var validator = new UserAuthenticateDTOValidator(SharpTemplateContext, AppSettings);
             var result = await validator.ValidateAsync(user);
 
             Assert.False(result.IsValid);

@@ -2,6 +2,7 @@
 using Appel.SharpTemplate.DTOs.User;
 using Appel.SharpTemplate.Infrastructure;
 using Appel.SharpTemplate.Models;
+using Appel.SharpTemplate.Utils;
 using Appel.SharpTemplate.ViewModels;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -78,6 +79,13 @@ namespace Appel.SharpTemplate.Services
 
         public async Task RegisterAsync(UserRegisterDTO user)
         {
+            var argon2HashManager = new Argon2HashManager(_appSettings);
+
+            var hashPassword = argon2HashManager.CreatePasswordHash(user.Password);
+
+            user.Password = hashPassword;
+            user.PasswordConfirmation = hashPassword;
+
             var config = new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterDTO, User>());
             var mapper = new Mapper(config);
 

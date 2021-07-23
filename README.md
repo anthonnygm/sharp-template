@@ -9,6 +9,7 @@ C# .NET Core Template repository desenvolved by using technologies, such as:
 - JWT Authentication
 - MailKit
 - FluentValidation
+- Argon2 Hash
 - Xunit
 
 ## Deploy Test
@@ -32,7 +33,8 @@ Sample file:
     "EmailUser": "no-reply@sharptemplate.com",
     "EmailPassword": "!@#123qwe",
     "AuthTokenSecretKey": "489cd5dbc708c7e541de4d7cd91ce6d0f1613573b7fc5b40d3942ccb9555cf35",
-    "EmailTokenSecretKey": "962012d09b8170d912f0669f6d7d9d07"
+    "EmailTokenSecretKey": "962012d09b8170d912f0669f6d7d9d07",
+	"Argon2PasswordKey": "a946ce40cf936def"
   }
 }
 ```

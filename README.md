@@ -1,6 +1,6 @@
 # Sharp Template
 
-C# .NET Core Template repository desenvolved by using technologies, such as:
+C# .NET Core Template repository developed by using technologies, such as:
 
 - ASP.NET Core
 - Razor Pages

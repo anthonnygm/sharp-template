@@ -1,5 +1,5 @@
-﻿using Appel.SharpTemplate.Infrastructure;
-using Appel.SharpTemplate.Models;
+﻿using Appel.SharpTemplate.Infrastructure.Application;
+using Appel.SharpTemplate.Infrastructure.Data;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -8,8 +8,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Text.Json;
 
-
-namespace Appel.SharpTemplate.Tests
+namespace Appel.SharpTemplate.UnitTests
 {
     public abstract class DependencyInjectionTest
     {

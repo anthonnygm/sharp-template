@@ -1,14 +1,13 @@
-using Appel.SharpTemplate.DTOs;
-using Appel.SharpTemplate.DTOs.Email;
-using Appel.SharpTemplate.DTOs.User;
-using Appel.SharpTemplate.Models;
-using Appel.SharpTemplate.Repositories;
-using Appel.SharpTemplate.Repositories.Abstractions;
-using Appel.SharpTemplate.Services;
-using Appel.SharpTemplate.Utils;
-using Appel.SharpTemplate.Validators.DTOs;
-using Appel.SharpTemplate.Validators.ViewModels;
-using Appel.SharpTemplate.ViewModels;
+using Appel.SharpTemplate.API.Application.DTOs.Email;
+using Appel.SharpTemplate.API.Application.DTOs.User;
+using Appel.SharpTemplate.API.Application.Services;
+using Appel.SharpTemplate.API.Application.Validators.DTOs;
+using Appel.SharpTemplate.API.Application.Validators.ViewModels;
+using Appel.SharpTemplate.API.Extensions;
+using Appel.SharpTemplate.API.ViewModels;
+using Appel.SharpTemplate.Domain.Interfaces;
+using Appel.SharpTemplate.Infrastructure.Data;
+using Appel.SharpTemplate.Infrastructure.Data.Repositories;
 using AutoMapper;
 using FluentValidation.Results;
 using System;
@@ -16,9 +15,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Appel.SharpTemplate.Domain.Entities;
 using Xunit;
 
-namespace Appel.SharpTemplate.Tests
+namespace Appel.SharpTemplate.UnitTests
 {
     public class UserTests : DependencyInjectionTest
     {

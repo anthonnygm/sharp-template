@@ -1,16 +1,26 @@
 # Sharp Template
 
-C# .NET Core Template repository developed by using technologies, such as:
+C# .NET Core Template repository developed by using **SOLID** principles.
+
+### Techical Stack
 
 - ASP.NET Core
-- Razor Pages
+- .NET Core 5
 - EF Core 5
-- Swagger
+- Razor Pages
+- SQL Server
+- Swagger UI
 - JWT Authentication
 - MailKit
+- AutoMapper
 - FluentValidation
 - Argon2 Hash
-- Xunit
+- xUnit
+
+### Design Patterns
+
+- Domain Driven Design
+- Repository & Generic Repository
 
 ## Deploy Test
 

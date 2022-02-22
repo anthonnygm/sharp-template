@@ -5,8 +5,8 @@ C# .NET Core Template repository developed by using **SOLID** principles.
 ### Techical Stack
 
 - ASP.NET Core
-- .NET Core 5
-- EF Core 5
+- .NET Core 6
+- EF Core 6
 - Razor Pages
 - SQL Server
 - Swagger UI

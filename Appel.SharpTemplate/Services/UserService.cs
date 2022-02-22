@@ -2,15 +2,16 @@
 using Appel.SharpTemplate.DTOs.User;
 using Appel.SharpTemplate.Infrastructure;
 using Appel.SharpTemplate.Models;
+using Appel.SharpTemplate.Repositories.Abstractions;
 using Appel.SharpTemplate.Utils;
 using Appel.SharpTemplate.ViewModels;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,12 +20,12 @@ namespace Appel.SharpTemplate.Services
 {
     public class UserService
     {
-        private readonly SharpTemplateContext _context;
+        private readonly IUserRepository _repository;
         private readonly IOptions<AppSettings> _appSettings;
 
-        public UserService(SharpTemplateContext context, IOptions<AppSettings> appSettings)
+        public UserService(IUserRepository repository, IOptions<AppSettings> appSettings)
         {
-            _context = context;
+            _repository = repository;
             _appSettings = appSettings;
         }
 
@@ -34,7 +35,12 @@ namespace Appel.SharpTemplate.Services
 
             var key = Encoding.ASCII.GetBytes(_appSettings.Value.AuthTokenSecretKey);
 
-            var databaseUser = await _context.Users.FirstAsync(x => x.Email == user.Email);
+            var databaseUser = (await _repository.GetAsync(x => x.Email == user.Email)).FirstOrDefault();
+
+            if (databaseUser == null)
+            {
+                return new UserTokenAuthDTO();
+            }
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -70,11 +76,10 @@ namespace Appel.SharpTemplate.Services
 
             mapper = new Mapper(config);
 
-            var databaseUser = await _context.Users.FirstAsync(x => x.Id == user.Id);
+            var databaseUser = await _repository.GetByIdAsync(user.Id);
             var updatedUser = mapper.Map(mappedUser, databaseUser);
 
-            _context.Users.Update(updatedUser);
-            await _context.SaveChangesAsync();
+            await _repository.UpdateAsync(updatedUser);
         }
 
         public async Task RegisterAsync(UserRegisterDTO user)
@@ -89,13 +94,12 @@ namespace Appel.SharpTemplate.Services
             var config = new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterDTO, User>());
             var mapper = new Mapper(config);
 
-            _context.Users.Add(mapper.Map<User>(user));
-            await _context.SaveChangesAsync();
+            await _repository.AddAsync(mapper.Map<User>(user));
         }
 
         public async Task SendForgotPasswordEmailAsync(string email)
         {
-            var databaseUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
+            var databaseUser = (await _repository.GetAsync(x => x.Email == email)).FirstOrDefault();
 
             if (databaseUser == null)
             {
@@ -108,23 +112,29 @@ namespace Appel.SharpTemplate.Services
 
         public async Task ResetPasswordAsync(ResetPassword user)
         {
-            var databaseUser = await _context.Users.FirstAsync(x => x.Id == user.Id);
-
+            var databaseUser = await _repository.GetByIdAsync(user.Id);
             databaseUser.Password = user.Password;
-            await _context.SaveChangesAsync();
+
+            await _repository.UpdateAsync(databaseUser);
         }
 
         public async Task ChangePasswordAsync(UserChangePasswordDTO user)
         {
-            var databaseUser = await _context.Users.FirstAsync(x => x.Email == user.Email);
+            var databaseUser = (await _repository.GetAsync(x => x.Email == user.Email)).FirstOrDefault();
+
+            if (databaseUser == null)
+            {
+                return;
+            }
 
             databaseUser.Password = user.NewPassword;
-            await _context.SaveChangesAsync();
+
+            await _repository.UpdateAsync(databaseUser);
         }
 
         public async Task<UserProfileDTO> GetUserByIdAsync(int id)
         {
-            var databaseUser = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
+            var databaseUser = await _repository.GetByIdAsync(id);
 
             var config = new MapperConfiguration(cfg => cfg.CreateMap<User, UserProfileDTO>());
             var mapper = new Mapper(config);
@@ -134,7 +144,7 @@ namespace Appel.SharpTemplate.Services
 
         public async Task<IEnumerable<UserProfileDTO>> GetAllUsersAsync()
         {
-            var databaseUsers = await _context.Users.ToListAsync();
+            var databaseUsers = await _repository.GetAsync();
 
             var config = new MapperConfiguration(cfg => cfg.CreateMap<User, UserProfileDTO>());
             var mapper = new Mapper(config);

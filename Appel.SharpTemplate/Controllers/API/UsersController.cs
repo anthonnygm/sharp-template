@@ -1,23 +1,24 @@
-﻿using Appel.SharpTemplate.DTOs;
+﻿using System.Threading.Tasks;
+using Appel.SharpTemplate.DTOs;
 using Appel.SharpTemplate.DTOs.User;
 using Appel.SharpTemplate.Infrastructure;
 using Appel.SharpTemplate.Models;
+using Appel.SharpTemplate.Repositories.Abstractions;
 using Appel.SharpTemplate.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System.Threading.Tasks;
 
-namespace Appel.SharpTemplate.Controllers
+namespace Appel.SharpTemplate.Controllers.API
 {
-    public class UserController : BaseController
+    public class UsersController : BaseController
     {
-        private readonly SharpTemplateContext _context;
+        private readonly IUserRepository _repository;
         private readonly IOptions<AppSettings> _appSettings;
 
-        public UserController(SharpTemplateContext context, IOptions<AppSettings> appSettings)
+        public UsersController(IUserRepository repository, IOptions<AppSettings> appSettings)
         {
-            _context = context;
+            _repository = repository;
             _appSettings = appSettings;
         }
 
@@ -26,7 +27,7 @@ namespace Appel.SharpTemplate.Controllers
         [Route("authenticate")]
         public async Task<IActionResult> AuthenticateAsync([FromBody] UserAuthenticateDTO user)
         {
-            var userService = new UserService(_context, _appSettings);
+            var userService = new UserService(_repository, _appSettings);
 
             var token = await userService.AuthenticateAsync(user);
 
@@ -44,7 +45,7 @@ namespace Appel.SharpTemplate.Controllers
                 return Forbid();
             }
 
-            var userService = new UserService(_context, _appSettings);
+            var userService = new UserService(_repository, _appSettings);
 
             await userService.EditAsync(user);
 
@@ -56,7 +57,7 @@ namespace Appel.SharpTemplate.Controllers
         [Route("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegisterDTO user)
         {
-            var userService = new UserService(_context, _appSettings);
+            var userService = new UserService(_repository, _appSettings);
 
             await userService.RegisterAsync(user);
 
@@ -68,7 +69,7 @@ namespace Appel.SharpTemplate.Controllers
         [Route("forgot-password")]
         public async Task<IActionResult> ForgotPasswordAsync([FromBody] string email)
         {
-            var userService = new UserService(_context, _appSettings);
+            var userService = new UserService(_repository, _appSettings);
 
             await userService.SendForgotPasswordEmailAsync(email);
 
@@ -79,7 +80,7 @@ namespace Appel.SharpTemplate.Controllers
         [Route("change-password")]
         public async Task<IActionResult> ChangePasswordAsync([FromBody] UserChangePasswordDTO user)
         {
-            var userService = new UserService(_context, _appSettings);
+            var userService = new UserService(_repository, _appSettings);
 
             await userService.ChangePasswordAsync(user);
 
@@ -97,7 +98,7 @@ namespace Appel.SharpTemplate.Controllers
                 return Forbid();
             }
 
-            var userService = new UserService(_context, _appSettings);
+            var userService = new UserService(_repository, _appSettings);
 
             var user = await userService.GetUserByIdAsync(id);
 
@@ -109,7 +110,7 @@ namespace Appel.SharpTemplate.Controllers
         [AuthorizeRoles(UserRole.Admin)]
         public async Task<IActionResult> GetAllUsersAsync()
         {
-            var userService = new UserService(_context, _appSettings);
+            var userService = new UserService(_repository, _appSettings);
 
             var users = await userService.GetAllUsersAsync();
 

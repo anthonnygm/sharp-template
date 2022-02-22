@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Appel.SharpTemplate.Controllers
+namespace Appel.SharpTemplate.Controllers.API
 {
     [Authorize]
     [ApiController]

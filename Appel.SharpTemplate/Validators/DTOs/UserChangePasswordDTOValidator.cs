@@ -1,20 +1,22 @@
-﻿using Appel.SharpTemplate.DTOs.User;
+﻿using System.Linq;
+using Appel.SharpTemplate.DTOs.User;
 using Appel.SharpTemplate.Models;
 using Appel.SharpTemplate.Validators.Extensions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
+using Appel.SharpTemplate.Repositories.Abstractions;
 
 namespace Appel.SharpTemplate.Validators.DTOs
 {
     public class UserChangePasswordDTOValidator : AbstractValidator<UserChangePasswordDTO>
     {
-        private readonly SharpTemplateContext _context;
+        private readonly IUserRepository _repository;
 
-        public UserChangePasswordDTOValidator(SharpTemplateContext context)
+        public UserChangePasswordDTOValidator(IUserRepository repository)
         {
-            _context = context;
+            _repository = repository;
 
             RuleFor(x => x.Email)
                 .IsRequired();
@@ -32,7 +34,7 @@ namespace Appel.SharpTemplate.Validators.DTOs
 
         public async Task<bool> BeValidPasswordAsync(UserChangePasswordDTO user, CancellationToken cancellationToken)
         {
-            return await _context.Users.AnyAsync(x => x.Email == user.Email && x.Password == user.CurrentPassword, cancellationToken);
+            return (await _repository.GetAsync(x => x.Email == user.Email && x.Password == user.CurrentPassword)).Any();
         }
     }
 }

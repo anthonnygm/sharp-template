@@ -1,6 +1,6 @@
 ﻿using Appel.SharpTemplate.DTOs.Email;
 using Appel.SharpTemplate.Infrastructure;
-using Appel.SharpTemplate.Models;
+using Appel.SharpTemplate.Repositories.Abstractions;
 using Appel.SharpTemplate.Utils;
 using Appel.SharpTemplate.Validators.Extensions;
 using Appel.SharpTemplate.ViewModels;
@@ -16,12 +16,12 @@ namespace Appel.SharpTemplate.Validators.ViewModels
 {
     public class UserResetPasswordViewModelValidator : AbstractValidator<ResetPassword>
     {
-        private readonly SharpTemplateContext _context;
+        private readonly IUserRepository _repository;
         private readonly IOptions<AppSettings> _appSettings;
 
-        public UserResetPasswordViewModelValidator(SharpTemplateContext context, IOptions<AppSettings> appSettings)
+        public UserResetPasswordViewModelValidator(IUserRepository repository, IOptions<AppSettings> appSettings)
         {
-            _context = context;
+            _repository = repository;
             _appSettings = appSettings;
 
             RuleFor(x => x)
@@ -38,7 +38,7 @@ namespace Appel.SharpTemplate.Validators.ViewModels
 
         public async Task<bool> BeValidHashAsync(ResetPassword user, CancellationToken cancellationToken)
         {
-            var databaseUser = await _context.Users.FirstOrDefaultAsync(x => x.Id == user.Id, cancellationToken);
+            var databaseUser = await _repository.GetByIdAsync(user.Id);
 
             if (databaseUser == null)
             {

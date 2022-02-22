@@ -1,7 +1,6 @@
 ﻿using Appel.SharpTemplate.Infrastructure;
 using Appel.SharpTemplate.Models;
 using FluentValidation.AspNetCore;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,15 +8,14 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Text.Json;
 
+
 namespace Appel.SharpTemplate.Tests
 {
-    public abstract class DependencyInjectionTest : IDisposable
+    public abstract class DependencyInjectionTest
     {
-        private readonly SqliteConnection _connection;
-
-        protected readonly SharpTemplateContext SharpTemplateContext;
         protected readonly IOptions<AppSettings> AppSettings;
         protected readonly JsonSerializerOptions JsonSerializerOptions;
+        protected readonly DbContextOptions<SharpTemplateContext> DbContextOptions;
 
         protected DependencyInjectionTest()
         {
@@ -39,15 +37,10 @@ namespace Appel.SharpTemplate.Tests
 
             AppSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AppSettings>>();
 
-            _connection = new SqliteConnection(configuration.GetConnectionString("DefaultConnection"));
-            _connection.Open();
-
-            var contextOptionsBuilder = new DbContextOptionsBuilder<SharpTemplateContext>()
-                    .UseSqlite(_connection)
-                    .Options;
-
-            SharpTemplateContext = new SharpTemplateContext(contextOptionsBuilder);
-            SharpTemplateContext.Database.EnsureCreated();
+            DbContextOptions = new DbContextOptionsBuilder<SharpTemplateContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .EnableSensitiveDataLogging()
+                .Options;
 
             JsonSerializerOptions = new JsonSerializerOptions()
             {
@@ -55,7 +48,5 @@ namespace Appel.SharpTemplate.Tests
                 DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
             };
         }
-
-        public void Dispose() => _connection.Close();
     }
 }

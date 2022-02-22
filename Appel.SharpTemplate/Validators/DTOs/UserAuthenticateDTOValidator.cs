@@ -1,10 +1,10 @@
 ﻿using Appel.SharpTemplate.DTOs.User;
 using Appel.SharpTemplate.Infrastructure;
-using Appel.SharpTemplate.Models;
+using Appel.SharpTemplate.Repositories.Abstractions;
 using Appel.SharpTemplate.Utils;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,12 +12,12 @@ namespace Appel.SharpTemplate.Validators.DTOs
 {
     public class UserAuthenticateDTOValidator : AbstractValidator<UserAuthenticateDTO>
     {
-        private readonly SharpTemplateContext _context;
+        private readonly IUserRepository _repository;
         private readonly IOptions<AppSettings> _appSettings;
 
-        public UserAuthenticateDTOValidator(SharpTemplateContext databaseContext, IOptions<AppSettings> appSettings)
+        public UserAuthenticateDTOValidator(IUserRepository repository, IOptions<AppSettings> appSettings)
         {
-            _context = databaseContext;
+            _repository = repository;
             _appSettings = appSettings;
 
             RuleFor(x => x)
@@ -28,7 +28,7 @@ namespace Appel.SharpTemplate.Validators.DTOs
         {
             var argon2HashManager = new Argon2HashManager(_appSettings);
 
-            var databaseUser = await _context.Users.FirstOrDefaultAsync(y => y.Email == user.Email, cancellationToken);
+            var databaseUser = (await _repository.GetAsync(x => x.Email == user.Email)).FirstOrDefault();
 
             return databaseUser != null && argon2HashManager.VerifyPasswordHash(user.Password, databaseUser.Password);
         }

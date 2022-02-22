@@ -7,16 +7,17 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Appel.SharpTemplate.Repositories.Abstractions;
 
 namespace Appel.SharpTemplate.Validators.DTOs
 {
     public class UserRegisterDTOValidator : AbstractValidator<UserRegisterDTO>
     {
-        private readonly SharpTemplateContext _context;
+        private readonly IUserRepository _repository;
 
-        public UserRegisterDTOValidator(SharpTemplateContext context)
+        public UserRegisterDTOValidator(IUserRepository repository)
         {
-            _context = context;
+            _repository = repository;
 
             RuleFor(x => x.Name)
                 .IsRequired();
@@ -83,14 +84,12 @@ namespace Appel.SharpTemplate.Validators.DTOs
 
         public async Task<bool> BeUniqueEmailAsync(string email, CancellationToken cancellationToken)
         {
-            return await _context.Users
-                .AllAsync(x => x.Email != email, cancellationToken: cancellationToken);
+            return !(await _repository.GetAsync(x => x.Email == email)).Any();
         }
 
         public async Task<bool> BeUniqueCpfCnpjAsync(string cpfCnpj, CancellationToken cancellationToken)
         {
-            return await _context.Users
-                .AllAsync(x => x.CpfCnpj != cpfCnpj, cancellationToken: cancellationToken);
+            return !(await _repository.GetAsync(x => x.CpfCnpj == cpfCnpj)).Any();
         }
 
         public bool BeValidCpf(string cpf)

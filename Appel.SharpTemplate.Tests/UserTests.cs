@@ -2,6 +2,8 @@ using Appel.SharpTemplate.DTOs;
 using Appel.SharpTemplate.DTOs.Email;
 using Appel.SharpTemplate.DTOs.User;
 using Appel.SharpTemplate.Models;
+using Appel.SharpTemplate.Repositories;
+using Appel.SharpTemplate.Repositories.Abstractions;
 using Appel.SharpTemplate.Services;
 using Appel.SharpTemplate.Utils;
 using Appel.SharpTemplate.Validators.DTOs;
@@ -9,7 +11,6 @@ using Appel.SharpTemplate.Validators.ViewModels;
 using Appel.SharpTemplate.ViewModels;
 using AutoMapper;
 using FluentValidation.Results;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,14 @@ namespace Appel.SharpTemplate.Tests
 {
     public class UserTests : DependencyInjectionTest
     {
+        private IUserRepository _userRepository;
+        private UserService _service;
+
+        public UserTests()
+        {
+            _service = GetUserService();
+        }
+
         #region Authenticate
 
         [Fact]
@@ -31,10 +40,9 @@ namespace Appel.SharpTemplate.Tests
             var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterDTO, UserAuthenticateDTO>()));
             var authenticateDTO = mapper.Map<UserAuthenticateDTO>(userRegisterDTO);
 
-            var service = new UserService(SharpTemplateContext, AppSettings);
-            await service.RegisterAsync(userRegisterDTO);
+            await _service.RegisterAsync(userRegisterDTO);
 
-            var validator = new UserAuthenticateDTOValidator(SharpTemplateContext, AppSettings);
+            var validator = new UserAuthenticateDTOValidator(_userRepository, AppSettings);
             var result = await validator.ValidateAsync(authenticateDTO);
 
             Assert.True(result.IsValid);
@@ -49,7 +57,7 @@ namespace Appel.SharpTemplate.Tests
                 Password = "12345678"
             };
 
-            var validator = new UserAuthenticateDTOValidator(SharpTemplateContext, AppSettings);
+            var validator = new UserAuthenticateDTOValidator(_userRepository, AppSettings);
             var result = await validator.ValidateAsync(user);
 
             Assert.False(result.IsValid);
@@ -61,11 +69,10 @@ namespace Appel.SharpTemplate.Tests
         {
             var user = CreateDefaultUser();
 
-            var service = new UserService(SharpTemplateContext, AppSettings);
-            await service.RegisterAsync(user);
+            await _service.RegisterAsync(user);
 
-            var databaseUser = await SharpTemplateContext.Users.FirstOrDefaultAsync(x => x.Email == user.Email);
-            var jsonEmailToken = JsonSerializer.Serialize(new EmailTokenDTO() { Email = databaseUser.Email, Validity = DateTime.Now.AddHours(3) });
+            var databaseUser = await _userRepository.GetByIdAsync(id: 1);
+            var jsonEmailToken = JsonSerializer.Serialize(new EmailTokenDTO() { Email = databaseUser?.Email, Validity = DateTime.Now.AddHours(3) });
 
             var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<User, ResetPassword>()));
 
@@ -74,14 +81,14 @@ namespace Appel.SharpTemplate.Tests
             userResetPassword.Password = "p1o2i3u4y5";
             userResetPassword.PasswordConfirmation = "p1o2i3u4y5";
 
-            var validator = new UserResetPasswordViewModelValidator(SharpTemplateContext, AppSettings);
+            var validator = new UserResetPasswordViewModelValidator(_userRepository, AppSettings);
             var result = await validator.ValidateAsync(userResetPassword);
 
-            await service.ResetPasswordAsync(userResetPassword);
-            var updatedUser = await SharpTemplateContext.Users.FirstOrDefaultAsync(x => x.Email == user.Email);
+            await _service.ResetPasswordAsync(userResetPassword);
+            var updatedUser = await _userRepository.GetByIdAsync(id: 1);
 
             Assert.True(result.IsValid);
-            Assert.Equal(userResetPassword.Password, updatedUser.Password);
+            Assert.Equal(userResetPassword.Password, updatedUser?.Password);
         }
 
         [Fact]
@@ -93,7 +100,7 @@ namespace Appel.SharpTemplate.Tests
                 PasswordConfirmation = "p1o2i3u4y5"
             };
 
-            var validator = new UserResetPasswordViewModelValidator(SharpTemplateContext, AppSettings);
+            var validator = new UserResetPasswordViewModelValidator(_userRepository, AppSettings);
             var result = await validator.ValidateAsync(user);
 
             Assert.False(result.IsValid);
@@ -104,24 +111,24 @@ namespace Appel.SharpTemplate.Tests
         public async Task UserValidate_ChangePassword_Success()
         {
             var user = CreateDefaultUser();
+            await _service.RegisterAsync(user);
 
-            var service = new UserService(SharpTemplateContext, AppSettings);
-            await service.RegisterAsync(user);
+            var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterDTO, UserChangePasswordDTO>()));
 
-            var databaseUser = await SharpTemplateContext.Users.FirstOrDefaultAsync(x => x.Email == user.Email);
-
-            var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<User, UserChangePasswordDTO>()));
-
-            var userChangePassword = mapper.Map<UserChangePasswordDTO>(databaseUser);
-            userChangePassword.CurrentPassword = databaseUser.Password;
+            var userChangePassword = mapper.Map<UserChangePasswordDTO>(user);
+            userChangePassword.CurrentPassword = user.Password;
             userChangePassword.NewPassword = "p1o2i3u4y5";
             userChangePassword.NewPasswordConfirmation = "p1o2i3u4y5";
 
-            var validator = new UserChangePasswordDTOValidator(SharpTemplateContext);
+            var validator = new UserChangePasswordDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(userChangePassword);
 
-            await service.ChangePasswordAsync(userChangePassword);
-            var updatedUser = await SharpTemplateContext.Users.FirstOrDefaultAsync(x => x.Email == user.Email);
+            // Since we use in memory database, to prevent problems tracking the entity, we need to create a new service with a new DbContext here.
+            // This problem would not occur in production because we use AddScoped dependency injection for repositories.
+            _service = GetUserService();
+
+            await _service.ChangePasswordAsync(userChangePassword);
+            var updatedUser = await _userRepository.GetByIdAsync(1);
 
             Assert.True(result.IsValid);
             Assert.Equal(userChangePassword.NewPassword, updatedUser.Password);
@@ -131,9 +138,7 @@ namespace Appel.SharpTemplate.Tests
         public async Task UserValidate_ChangePassword_Fail()
         {
             var user = CreateDefaultUser();
-
-            var service = new UserService(SharpTemplateContext, AppSettings);
-            await service.RegisterAsync(user);
+            await _service.RegisterAsync(user);
 
             var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterDTO, UserChangePasswordDTO>()));
 
@@ -143,7 +148,7 @@ namespace Appel.SharpTemplate.Tests
             userChangePassword.NewPassword = "p1o2i3u4y5";
             userChangePassword.NewPasswordConfirmation = "p1o2i3u4y5";
 
-            var validator = new UserChangePasswordDTOValidator(SharpTemplateContext);
+            var validator = new UserChangePasswordDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(userChangePassword);
 
             Assert.False(result.IsValid);
@@ -161,7 +166,7 @@ namespace Appel.SharpTemplate.Tests
             user.Password = string.Empty;
             user.PasswordConfirmation = string.Empty;
 
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             var passwordErrors = new Queue<ValidationFailure>(result.Errors.Where(x => x.PropertyName == "password"));
@@ -183,7 +188,7 @@ namespace Appel.SharpTemplate.Tests
             var user = CreateDefaultLegalUser();
             user.PasswordConfirmation = "q1w2e3r45";
 
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             Assert.False(result.IsValid);
@@ -196,7 +201,7 @@ namespace Appel.SharpTemplate.Tests
             var user = CreateDefaultLegalUser();
             user.CpfCnpj = "123";
 
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             Assert.False(result.IsValid);
@@ -212,7 +217,7 @@ namespace Appel.SharpTemplate.Tests
             var user = CreateDefaultLegalUser();
             user.Email = email;
 
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             Assert.False(result.IsValid);
@@ -223,11 +228,9 @@ namespace Appel.SharpTemplate.Tests
         public async Task UserLegal_Register_NotUnique()
         {
             var user = CreateDefaultLegalUser();
+            await _service.RegisterAsync(user);
 
-            var service = new UserService(SharpTemplateContext, AppSettings);
-            await service.RegisterAsync(user);
-
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             var queue = new Queue<ValidationFailure>(result.Errors);
@@ -251,7 +254,7 @@ namespace Appel.SharpTemplate.Tests
             var json = JsonSerializer.Serialize(user, JsonSerializerOptions);
             user = JsonSerializer.Deserialize<UserRegisterDTO>(json, JsonSerializerOptions);
 
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             Assert.True(result.IsValid);
@@ -268,7 +271,7 @@ namespace Appel.SharpTemplate.Tests
         {
             var user = CreateDefaultLegalUser();
 
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             Assert.True(result.IsValid);
@@ -285,7 +288,7 @@ namespace Appel.SharpTemplate.Tests
             user.Password = string.Empty;
             user.PasswordConfirmation = string.Empty;
 
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             var passwordErrors = new Queue<ValidationFailure>(result.Errors.Where(x => x.PropertyName == "password"));
@@ -307,7 +310,7 @@ namespace Appel.SharpTemplate.Tests
             var user = CreateDefaultPhysicalUser();
             user.PasswordConfirmation = "q1w2e3r45";
 
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             Assert.False(result.IsValid);
@@ -320,7 +323,7 @@ namespace Appel.SharpTemplate.Tests
             var user = CreateDefaultPhysicalUser();
             user.CpfCnpj = "123";
 
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             Assert.False(result.IsValid);
@@ -336,7 +339,7 @@ namespace Appel.SharpTemplate.Tests
             var user = CreateDefaultPhysicalUser();
             user.Email = email;
 
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             Assert.False(result.IsValid);
@@ -347,11 +350,9 @@ namespace Appel.SharpTemplate.Tests
         public async Task UserPhysical_Register_NotUnique()
         {
             var user = CreateDefaultPhysicalUser();
+            await _service.RegisterAsync(user);
 
-            var service = new UserService(SharpTemplateContext, AppSettings);
-            await service.RegisterAsync(user);
-
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             var queue = new Queue<ValidationFailure>(result.Errors);
@@ -373,7 +374,7 @@ namespace Appel.SharpTemplate.Tests
             var json = JsonSerializer.Serialize(user, JsonSerializerOptions);
             user = JsonSerializer.Deserialize<UserRegisterDTO>(json, JsonSerializerOptions);
 
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             Assert.True(result.IsValid);
@@ -388,7 +389,7 @@ namespace Appel.SharpTemplate.Tests
         {
             var user = CreateDefaultPhysicalUser();
 
-            var validator = new UserRegisterDTOValidator(SharpTemplateContext);
+            var validator = new UserRegisterDTOValidator(_userRepository);
             var result = await validator.ValidateAsync(user);
 
             Assert.True(result.IsValid);
@@ -402,11 +403,9 @@ namespace Appel.SharpTemplate.Tests
         public async Task GenericUser_GetUserById_Success()
         {
             var user = CreateDefaultUser();
+            await _service.RegisterAsync(user);
 
-            var service = new UserService(SharpTemplateContext, AppSettings);
-            await service.RegisterAsync(user);
-
-            var databaseUser = await service.GetUserByIdAsync(id: 1);
+            var databaseUser = await _service.GetUserByIdAsync(id: 1);
 
             Assert.NotNull(databaseUser);
             Assert.Equal(user.Email, databaseUser.Email);
@@ -416,11 +415,9 @@ namespace Appel.SharpTemplate.Tests
         public async Task GenericUser_GetAllUsers_Success()
         {
             var user = CreateDefaultUser();
+            await _service.RegisterAsync(user);
 
-            var service = new UserService(SharpTemplateContext, AppSettings);
-            await service.RegisterAsync(user);
-
-            var databaseUsers = await service.GetAllUsersAsync();
+            var databaseUsers = await _service.GetAllUsersAsync();
 
             Assert.NotNull(databaseUsers);
             Assert.NotEmpty(databaseUsers);
@@ -432,16 +429,15 @@ namespace Appel.SharpTemplate.Tests
         {
             var user = CreateDefaultUser();
 
-            var service = new UserService(SharpTemplateContext, AppSettings);
-            await service.RegisterAsync(user);
 
-            var databaseUser = await service.GetUserByIdAsync((await SharpTemplateContext.Users.FirstAsync()).Id);
+            await _service.RegisterAsync(user);
+            var databaseUser = await _service.GetUserByIdAsync(id: 1);
             databaseUser.City = "Zochester";
             databaseUser.Neighborhood = "Troit";
 
-            await service.EditAsync(databaseUser);
+            await _service.EditAsync(databaseUser);
 
-            databaseUser = await service.GetUserByIdAsync(databaseUser.Id);
+            databaseUser = await _service.GetUserByIdAsync(databaseUser.Id);
 
             Assert.Equal(user.Name, databaseUser.Name);
             Assert.Equal(user.Email, databaseUser.Email);
@@ -490,6 +486,16 @@ namespace Appel.SharpTemplate.Tests
             user.IdentityDocument = "235789331";
 
             return user;
+        }
+
+        private UserService GetUserService()
+        {
+            var context = new SharpTemplateContext(DbContextOptions);
+            var repositoryBase = new RepositoryBase<User>(context);
+
+            _userRepository = new UserRepository(repositoryBase);
+
+            return new UserService(_userRepository, AppSettings);
         }
 
         #endregion

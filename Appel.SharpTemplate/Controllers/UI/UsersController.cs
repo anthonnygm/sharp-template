@@ -6,17 +6,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Linq;
 using System.Threading.Tasks;
+using Appel.SharpTemplate.Repositories.Abstractions;
 
 namespace Appel.SharpTemplate.Controllers.UI
 {
-    public class UserController : BaseController
+    public class UsersController : BaseController
     {
-        private readonly SharpTemplateContext _context;
+        private readonly IUserRepository _repository;
         private readonly IOptions<AppSettings> _appSettings;
 
-        public UserController(SharpTemplateContext context, IOptions<AppSettings> appSettings)
+        public UsersController(IUserRepository repository, IOptions<AppSettings> appSettings)
         {
-            _context = context;
+            _repository = repository;
             _appSettings = appSettings;
         }
 
@@ -41,7 +42,7 @@ namespace Appel.SharpTemplate.Controllers.UI
                 return View();
             }
 
-            var userService = new UserService(_context, _appSettings);
+            var userService = new UserService(_repository, _appSettings);
 
             await userService.ResetPasswordAsync(user);
 

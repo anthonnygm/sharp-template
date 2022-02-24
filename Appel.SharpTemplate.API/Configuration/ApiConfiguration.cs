@@ -86,7 +86,7 @@ public static class ApiConfiguration
         return services;
     }
 
-    public static IApplicationBuilder UseApiConfiguration(this WebApplication app)
+    public static WebApplication UseApiConfiguration(this WebApplication app)
     {
         if (app.Environment.IsDevelopment())
         {
@@ -102,11 +102,11 @@ public static class ApiConfiguration
             await context.Response.WriteAsJsonAsync(response);
         }));
 
-        app.UseCors("Total");
         app.UseHttpsRedirection();
-
+        app.UseCors("Total");
         app.UseRouting();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();

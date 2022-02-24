@@ -18,5 +18,6 @@ var app = builder.Build();
 
 app.UseApiConfiguration();
 app.UseSwaggerConfiguration();
+app.RunMigrations();
 
 await app.RunAsync();

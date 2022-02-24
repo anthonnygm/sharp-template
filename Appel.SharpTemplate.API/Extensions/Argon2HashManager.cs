@@ -20,9 +20,9 @@ public class Argon2HashManager
         var argon2 = new Argon2id(Encoding.UTF8.GetBytes(value))
         {
             Salt = Encoding.ASCII.GetBytes(_appSettings.Value.Argon2PasswordKey),
-            Iterations = 4,
-            DegreeOfParallelism = 8,
-            MemorySize = 1024 * 1024
+            Iterations = 2,
+            DegreeOfParallelism = 2,
+            MemorySize = 128 * 128
         };
 
         return Convert.ToBase64String(argon2.GetBytes(16));

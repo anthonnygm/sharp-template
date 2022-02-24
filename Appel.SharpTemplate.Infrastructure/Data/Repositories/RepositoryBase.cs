@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Appel.SharpTemplate.Infrastructure.Data.Repositories;
 
-public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : BaseEntity
+public class RepositoryBase<TEntity> : IAsyncDisposable, IRepositoryBase<TEntity> where TEntity : BaseEntity
 {
     protected readonly DbSet<TEntity> DbSet;
     private readonly SharpTemplateContext _context;
@@ -54,5 +54,5 @@ public class RepositoryBase<TEntity> : IRepositoryBase<TEntity> where TEntity : 
         await _context.SaveChangesAsync();
     }
 
-    //public ValueTask DisposeAsync() => _context.DisposeAsync();
+    public ValueTask DisposeAsync() => _context.DisposeAsync();
 }

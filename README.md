@@ -4,12 +4,13 @@ C# .NET Core Template repository developed by using **SOLID** principles.
 
 ### Techical Stack
 
-- ASP.NET Core
+- ASP.NET Core 6
 - .NET Core 6
 - EF Core 6
 - Razor Pages
 - SQL Server
 - Swagger UI
+- GraphQL (with HotChocolate)
 - JWT Authentication
 - MailKit
 - AutoMapper

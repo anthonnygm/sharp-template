@@ -11,7 +11,8 @@ public static class GraphQLConfiguration
         services
             .AddGraphQLServer()
             .AddAuthorization()
-            .AddQueryType<UserType>();
+            .AddQueryType<UserQuery>()
+            .AddType<UserType>();
 
         return services;
     }

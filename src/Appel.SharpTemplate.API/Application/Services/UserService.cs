@@ -70,15 +70,7 @@ public class UserService
 
         var mappedUser = mapper.Map<User>(user);
 
-        config = new MapperConfiguration(cfg => cfg.CreateMap<User, User>()
-            .ForAllMembers(opts => opts.Condition((_, _, srcMember) => srcMember != null)));
-
-        mapper = new Mapper(config);
-
-        var databaseUser = await _repository.GetByIdAsync(user.Id);
-        var updatedUser = mapper.Map(mappedUser, databaseUser);
-
-        await _repository.UpdateAsync(updatedUser);
+        await _repository.UpdateAsync(mappedUser);
     }
 
     public async Task RegisterAsync(UserRegisterDTO user)

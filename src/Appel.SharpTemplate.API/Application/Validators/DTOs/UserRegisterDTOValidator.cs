@@ -83,7 +83,9 @@ public class UserRegisterDTOValidator : AbstractValidator<UserRegisterDTO>
 
     public async Task<bool> BeUniqueEmailAsync(string email, CancellationToken cancellationToken)
     {
-        return !(await _repository.GetAsync(x => x.Email == email)).Any();
+        var xxx = await _repository.GetAsync(x => x.Email == email);
+
+        return !xxx.Any();
     }
 
     public async Task<bool> BeUniqueCpfCnpjAsync(string cpfCnpj, CancellationToken cancellationToken)

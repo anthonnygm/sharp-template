@@ -8,10 +8,10 @@ public class TestDbContextFactory : IDbContextFactory<SharpTemplateContext>
 {
     private readonly DbContextOptions<SharpTemplateContext> _options;
 
-    public TestDbContextFactory()
+    public TestDbContextFactory(string databaseName = "test-db")
     {
         _options = new DbContextOptionsBuilder<SharpTemplateContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(databaseName)
             .Options;
     }
 

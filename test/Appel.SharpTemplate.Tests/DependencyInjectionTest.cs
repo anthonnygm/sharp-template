@@ -1,7 +1,4 @@
-﻿using Appel.SharpTemplate.Domain.Entities;
-using Appel.SharpTemplate.Domain.Interfaces;
-using Appel.SharpTemplate.Infrastructure.Application;
-using Appel.SharpTemplate.Infrastructure.Data.Repositories;
+﻿using Appel.SharpTemplate.Infrastructure.Application;
 using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +10,6 @@ namespace Appel.SharpTemplate.UnitTests;
 
 public abstract class DependencyInjectionTest
 {
-    protected readonly IUserRepository UserRepository;
     protected readonly IOptions<AppSettings> AppSettings;
     protected readonly JsonSerializerOptions JsonSerializerOptions;
 
@@ -36,11 +32,6 @@ public abstract class DependencyInjectionTest
         services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
 
         AppSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AppSettings>>();
-
-        var contextFactory = new TestDbContextFactory();
-        var repositoryBase = new RepositoryBase<User>(contextFactory);
-
-        UserRepository = new UserRepository(repositoryBase);
 
         JsonSerializerOptions = new JsonSerializerOptions()
         {

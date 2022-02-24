@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+    api:
+        image: "mcr.microsoft.com/mssql/server"
+        container_name: sharp-template-api
+        build:
+            context: ../
+            dockerfile: ./src/Appel.SharpTemplate.API/Dockerfile   
+        ports:
+            - 7701:80
+            - 7702:443
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development

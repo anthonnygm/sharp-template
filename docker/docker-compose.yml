@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+    api:
+        container_name: sharp-template-api
+        build:
+            context: ../
+            dockerfile: ./src/Appel.SharpTemplate.API/Dockerfile   
+        ports:
+            - 7701:80
+            - 7702:443
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+        depends_on:
+            - db
+    db:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        container_name: sharp-template-db
+        environment:
+            - ACCEPT_EULA=Y
+        ports:
+            - 1433:1433

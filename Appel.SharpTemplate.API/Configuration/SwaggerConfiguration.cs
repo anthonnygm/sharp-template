@@ -1,37 +1,63 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using System.Collections.Generic;
 
-namespace Appel.SharpTemplate.API.Configuration
+namespace Appel.SharpTemplate.API.Configuration;
+
+public static class SwaggerConfiguration
 {
-    public static class SwaggerConfiguration
+    public static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
     {
-        public static IServiceCollection AddSwaggerConfiguration(this IServiceCollection services)
+        services.AddSwaggerGen(c =>
         {
-            services.AddSwaggerGen(c =>
+            c.SwaggerDoc("v1", new OpenApiInfo()
             {
-                c.SwaggerDoc("v1", new OpenApiInfo()
+                Title = "Appel - SharpTemplate",
+                Description = "SharpTemplate® API Documentation",
+            });
+
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Description = "JWT Authorization header using the Bearer scheme.",
+                Name = "Authorization",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.ApiKey,
+                Scheme = "Bearer"
+            });
+
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+            {
                 {
-                    Title = "Appel - SharpTemplate",
-                    Description = "SharpTemplate® API Documentation",
-                    Contact = new OpenApiContact() { Name = "Appel SharpTemplate", Email = "guilhermeaappel@gmail.com" },
-                });
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        },
+                        Scheme = "oauth2",
+                        Name = "Bearer",
+                        In = ParameterLocation.Header,
+
+                    },
+                    new List<string>()
+                }
             });
+        });
 
-            return services;
-        }
+        return services;
+    }
 
-        public static IApplicationBuilder UseSwaggerConfiguration(this IApplicationBuilder app, IWebHostEnvironment env)
+    public static IApplicationBuilder UseSwaggerConfiguration(this IApplicationBuilder app)
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
         {
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.DefaultModelsExpandDepth(-1);
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-            });
+            c.DefaultModelsExpandDepth(-1);
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+        });
 
-            return app;
-        }
+        return app;
     }
 }

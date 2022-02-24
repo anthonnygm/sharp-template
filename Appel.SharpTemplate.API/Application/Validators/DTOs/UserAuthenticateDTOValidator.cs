@@ -8,29 +8,28 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Appel.SharpTemplate.API.Application.Validators.DTOs
+namespace Appel.SharpTemplate.API.Application.Validators.DTOs;
+
+public class UserAuthenticateDTOValidator : AbstractValidator<UserAuthenticateDTO>
 {
-    public class UserAuthenticateDTOValidator : AbstractValidator<UserAuthenticateDTO>
+    private readonly IUserRepository _repository;
+    private readonly IOptions<AppSettings> _appSettings;
+
+    public UserAuthenticateDTOValidator(IUserRepository repository, IOptions<AppSettings> appSettings)
     {
-        private readonly IUserRepository _repository;
-        private readonly IOptions<AppSettings> _appSettings;
+        _repository = repository;
+        _appSettings = appSettings;
 
-        public UserAuthenticateDTOValidator(IUserRepository repository, IOptions<AppSettings> appSettings)
-        {
-            _repository = repository;
-            _appSettings = appSettings;
+        RuleFor(x => x)
+            .MustAsync(BeValidUserAsync).OverridePropertyName("InvalidLogin").WithMessage("Invalid e-mail or password");
+    }
 
-            RuleFor(x => x)
-                .MustAsync(BeValidUserAsync).OverridePropertyName("InvalidLogin").WithMessage("Invalid e-mail or password");
-        }
+    public async Task<bool> BeValidUserAsync(UserAuthenticateDTO user, CancellationToken cancellationToken)
+    {
+        var argon2HashManager = new Argon2HashManager(_appSettings);
 
-        public async Task<bool> BeValidUserAsync(UserAuthenticateDTO user, CancellationToken cancellationToken)
-        {
-            var argon2HashManager = new Argon2HashManager(_appSettings);
+        var databaseUser = (await _repository.GetAsync(x => x.Email == user.Email)).FirstOrDefault();
 
-            var databaseUser = (await _repository.GetAsync(x => x.Email == user.Email)).FirstOrDefault();
-
-            return databaseUser != null && argon2HashManager.VerifyPasswordHash(user.Password, databaseUser.Password);
-        }
+        return databaseUser != null && argon2HashManager.VerifyPasswordHash(user.Password, databaseUser.Password);
     }
 }

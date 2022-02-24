@@ -4,13 +4,12 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace Appel.SharpTemplate.Domain.Interfaces
+namespace Appel.SharpTemplate.Domain.Interfaces;
+
+public interface IUserRepository
 {
-    public interface IUserRepository
-    {
-        Task<IEnumerable<User>> GetAsync(Expression<Func<User, bool>> filter = null);
-        Task<User> GetByIdAsync(int id);
-        Task AddAsync(User entity);
-        Task UpdateAsync(User entity);
-    }
+    Task<IEnumerable<User>> GetAsync(Expression<Func<User, bool>> filter = null);
+    Task<User> GetByIdAsync(int id);
+    Task AddAsync(User entity);
+    Task UpdateAsync(User entity);
 }

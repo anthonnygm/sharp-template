@@ -4,57 +4,56 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Appel.SharpTemplate.Infrastructure.Application
+namespace Appel.SharpTemplate.Infrastructure.Application;
+
+public class CamelCasePropertyNameResolver
 {
-    public class CamelCasePropertyNameResolver
+    public static string ResolvePropertyName(Type type, MemberInfo memberInfo, LambdaExpression expression)
     {
-        public static string ResolvePropertyName(Type type, MemberInfo memberInfo, LambdaExpression expression)
+        return ToCamelCase(DefaultPropertyNameResolver(type, memberInfo, expression));
+    }
+
+    private static string DefaultPropertyNameResolver(Type type, MemberInfo memberInfo, LambdaExpression expression)
+    {
+        if (expression != null)
         {
-            return ToCamelCase(DefaultPropertyNameResolver(type, memberInfo, expression));
+            var chain = PropertyChain.FromExpression(expression);
+
+            if (chain.Count > 0)
+            {
+                return chain.ToString();
+            }
         }
 
-        private static string DefaultPropertyNameResolver(Type type, MemberInfo memberInfo, LambdaExpression expression)
+        return memberInfo?.Name;
+    }
+
+    private static string ToCamelCase(string value)
+    {
+        if (string.IsNullOrEmpty(value) || !char.IsUpper(value[0]))
         {
-            if (expression != null)
-            {
-                var chain = PropertyChain.FromExpression(expression);
-
-                if (chain.Count > 0)
-                {
-                    return chain.ToString();
-                }
-            }
-
-            return memberInfo?.Name;
+            return value;
         }
 
-        private static string ToCamelCase(string value)
+        var chars = value.ToCharArray();
+
+        for (var i = 0; i < chars.Length; i++)
         {
-            if (string.IsNullOrEmpty(value) || !char.IsUpper(value[0]))
+            if (i == 1 && !char.IsUpper(chars[i]))
             {
-                return value;
+                break;
             }
 
-            var chars = value.ToCharArray();
+            var hasNext = (i + 1 < chars.Length);
 
-            for (var i = 0; i < chars.Length; i++)
+            if (i > 0 && hasNext && !char.IsUpper(chars[i + 1]))
             {
-                if (i == 1 && !char.IsUpper(chars[i]))
-                {
-                    break;
-                }
-
-                var hasNext = (i + 1 < chars.Length);
-
-                if (i > 0 && hasNext && !char.IsUpper(chars[i + 1]))
-                {
-                    break;
-                }
-
-                chars[i] = char.ToLower(chars[i], CultureInfo.InvariantCulture);
+                break;
             }
 
-            return new string(chars);
+            chars[i] = char.ToLower(chars[i], CultureInfo.InvariantCulture);
         }
+
+        return new string(chars);
     }
 }

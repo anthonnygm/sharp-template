@@ -8,188 +8,187 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Appel.SharpTemplate.API.Application.Validators.DTOs
+namespace Appel.SharpTemplate.API.Application.Validators.DTOs;
+
+public class UserRegisterDTOValidator : AbstractValidator<UserRegisterDTO>
 {
-    public class UserRegisterDTOValidator : AbstractValidator<UserRegisterDTO>
+    private readonly IUserRepository _repository;
+
+    public UserRegisterDTOValidator(IUserRepository repository)
     {
-        private readonly IUserRepository _repository;
+        _repository = repository;
 
-        public UserRegisterDTOValidator(IUserRepository repository)
+        RuleFor(x => x.Name)
+            .IsRequired();
+
+        RuleFor(x => x.Email)
+            .IsRequired()
+            .EmailAddress().WithMessage("Invalid email address")
+            .MustAsync(BeUniqueEmailAsync).WithMessage("E-mail already registered");
+
+        RuleFor(x => x.Password)
+            .PasswordValidation();
+
+        RuleFor(x => x.PasswordConfirmation)
+            .IsRequired()
+            .Equal(x => x.Password).WithMessage("Passwords doesn't match");
+
+        When(x => x.Type == UserType.Legal, () =>
         {
-            _repository = repository;
+            RuleFor(x => x.CpfCnpj)
+            .IsRequired()
+            .Must(BeValidCnpj).WithMessage("Invalid CNPJ")
+            .MustAsync(BeUniqueCpfCnpjAsync).WithMessage("CNPJ already registered");
 
-            RuleFor(x => x.Name)
-                .IsRequired();
+            RuleFor(x => x.ResponsibleCpf)
+            .IsRequired();
 
-            RuleFor(x => x.Email)
-                .IsRequired()
-                .EmailAddress().WithMessage("Invalid email address")
-                .MustAsync(BeUniqueEmailAsync).WithMessage("E-mail already registered");
+            RuleFor(x => x.ResponsibleName)
+            .IsRequired();
 
-            RuleFor(x => x.Password)
-                .PasswordValidation();
+            RuleFor(x => x.StateRegistration)
+            .IsRequired();
+        }).Otherwise(() =>
+        {
+            RuleFor(x => x.CpfCnpj)
+            .IsRequired()
+            .Must(BeValidCpf).WithMessage("Invalid CPF")
+            .MustAsync(BeUniqueCpfCnpjAsync).WithMessage("CPF already registered");
 
-            RuleFor(x => x.PasswordConfirmation)
-                .IsRequired()
-                .Equal(x => x.Password).WithMessage("Passwords doesn't match");
+            RuleFor(x => x.IdentityDocument)
+            .IsRequired();
+        });
 
-            When(x => x.Type == UserType.Legal, () =>
-            {
-                RuleFor(x => x.CpfCnpj)
-                .IsRequired()
-                .Must(BeValidCnpj).WithMessage("Invalid CNPJ")
-                .MustAsync(BeUniqueCpfCnpjAsync).WithMessage("CNPJ already registered");
+        RuleFor(x => x.CellPhone)
+            .IsRequired();
 
-                RuleFor(x => x.ResponsibleCpf)
-                .IsRequired();
+        RuleFor(x => x.Address)
+            .IsRequired();
 
-                RuleFor(x => x.ResponsibleName)
-                .IsRequired();
+        RuleFor(x => x.AddressNumber)
+            .IsRequired();
 
-                RuleFor(x => x.StateRegistration)
-                .IsRequired();
-            }).Otherwise(() =>
-            {
-                RuleFor(x => x.CpfCnpj)
-                .IsRequired()
-                .Must(BeValidCpf).WithMessage("Invalid CPF")
-                .MustAsync(BeUniqueCpfCnpjAsync).WithMessage("CPF already registered");
+        RuleFor(x => x.Neighborhood)
+            .IsRequired();
 
-                RuleFor(x => x.IdentityDocument)
-                .IsRequired();
-            });
+        RuleFor(x => x.City)
+            .IsRequired();
 
-            RuleFor(x => x.CellPhone)
-                .IsRequired();
+        RuleFor(x => x.ZipCode)
+            .IsRequired();
 
-            RuleFor(x => x.Address)
-                .IsRequired();
+        RuleFor(x => x.FederativeUnit)
+            .IsRequired();
+    }
 
-            RuleFor(x => x.AddressNumber)
-                .IsRequired();
+    public async Task<bool> BeUniqueEmailAsync(string email, CancellationToken cancellationToken)
+    {
+        return !(await _repository.GetAsync(x => x.Email == email)).Any();
+    }
 
-            RuleFor(x => x.Neighborhood)
-                .IsRequired();
+    public async Task<bool> BeUniqueCpfCnpjAsync(string cpfCnpj, CancellationToken cancellationToken)
+    {
+        return !(await _repository.GetAsync(x => x.CpfCnpj == cpfCnpj)).Any();
+    }
 
-            RuleFor(x => x.City)
-                .IsRequired();
+    public bool BeValidCpf(string cpf)
+    {
+        cpf = cpf.ToNumbersOnly();
 
-            RuleFor(x => x.ZipCode)
-                .IsRequired();
-
-            RuleFor(x => x.FederativeUnit)
-                .IsRequired();
+        if (cpf.Length != 11)
+        {
+            return false;
         }
 
-        public async Task<bool> BeUniqueEmailAsync(string email, CancellationToken cancellationToken)
+        // Test sequences like "99999999999"
+        if (cpf.ToCharArray().All(x => x == cpf[0]))
         {
-            return !(await _repository.GetAsync(x => x.Email == email)).Any();
+            return false;
         }
 
-        public async Task<bool> BeUniqueCpfCnpjAsync(string cpfCnpj, CancellationToken cancellationToken)
+        string cpfTemp, checkDigits;
+        var sum = 0;
+
+        cpfTemp = cpf.Substring(0, 9);
+
+        // Get first digit
+        int[] multiplier1 = new int[9] { 10, 9, 8, 7, 6, 5, 4, 3, 2 };
+
+        for (var i = 0; i < 9; i++)
         {
-            return !(await _repository.GetAsync(x => x.CpfCnpj == cpfCnpj)).Any();
+            sum += int.Parse(cpfTemp[i].ToString()) * multiplier1[i];
         }
 
-        public bool BeValidCpf(string cpf)
+        var mod = sum % 11;
+
+        checkDigits = (mod < 2 ? 0 : 11 - mod).ToString();
+
+        cpfTemp += checkDigits;
+
+        sum = 0;
+
+        // Get second digit
+        var multiplier2 = new int[10] { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2 };
+
+        for (var i = 0; i < 10; i++)
         {
-            cpf = cpf.ToNumbersOnly();
-
-            if (cpf.Length != 11)
-            {
-                return false;
-            }
-
-            // Test sequences like "99999999999"
-            if (cpf.ToCharArray().All(x => x == cpf[0]))
-            {
-                return false;
-            }
-
-            string cpfTemp, checkDigits;
-            var sum = 0;
-
-            cpfTemp = cpf.Substring(0, 9);
-
-            // Get first digit
-            int[] multiplier1 = new int[9] { 10, 9, 8, 7, 6, 5, 4, 3, 2 };
-
-            for (var i = 0; i < 9; i++)
-            {
-                sum += int.Parse(cpfTemp[i].ToString()) * multiplier1[i];
-            }
-
-            var mod = sum % 11;
-
-            checkDigits = (mod < 2 ? 0 : 11 - mod).ToString();
-
-            cpfTemp += checkDigits;
-
-            sum = 0;
-
-            // Get second digit
-            var multiplier2 = new int[10] { 11, 10, 9, 8, 7, 6, 5, 4, 3, 2 };
-
-            for (var i = 0; i < 10; i++)
-            {
-                sum += int.Parse(cpfTemp[i].ToString()) * multiplier2[i];
-            }
-
-            mod = sum % 11;
-
-            checkDigits += (mod < 2 ? 0 : 11 - mod).ToString();
-
-            return cpf.EndsWith(checkDigits);
+            sum += int.Parse(cpfTemp[i].ToString()) * multiplier2[i];
         }
 
-        public bool BeValidCnpj(string cnpj)
+        mod = sum % 11;
+
+        checkDigits += (mod < 2 ? 0 : 11 - mod).ToString();
+
+        return cpf.EndsWith(checkDigits);
+    }
+
+    public bool BeValidCnpj(string cnpj)
+    {
+        cnpj = cnpj.ToNumbersOnly();
+
+        if (cnpj.Length != 14)
         {
-            cnpj = cnpj.ToNumbersOnly();
-
-            if (cnpj.Length != 14)
-            {
-                return false;
-            }
-
-            // Test sequences like "99999999999"
-            if (cnpj.ToCharArray().All(x => x == cnpj[0]))
-            {
-                return false;
-            }
-
-            int sum = 0, mod;
-
-            var cnpjTemp = cnpj.Substring(0, 12);
-
-            // Get first digit
-            var multiplier1 = new[] { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
-
-            for (var i = 0; i < 12; i++)
-            {
-                sum += int.Parse(cnpjTemp[i].ToString()) * multiplier1[i];
-            }
-
-            mod = sum % 11;
-
-            var checkDigits = (mod < 2 ? 0 : 11 - mod).ToString();
-
-            cnpjTemp += checkDigits;
-
-            sum = 0;
-
-            // Get second digit
-            var multiplier2 = new[] { 6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
-
-            for (var i = 0; i < 13; i++)
-            {
-                sum += int.Parse(cnpjTemp[i].ToString()) * multiplier2[i];
-            }
-
-            mod = sum % 11;
-
-            checkDigits += (mod < 2 ? 0 : 11 - mod).ToString();
-
-            return cnpj.EndsWith(checkDigits);
+            return false;
         }
+
+        // Test sequences like "99999999999"
+        if (cnpj.ToCharArray().All(x => x == cnpj[0]))
+        {
+            return false;
+        }
+
+        int sum = 0, mod;
+
+        var cnpjTemp = cnpj.Substring(0, 12);
+
+        // Get first digit
+        var multiplier1 = new[] { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
+
+        for (var i = 0; i < 12; i++)
+        {
+            sum += int.Parse(cnpjTemp[i].ToString()) * multiplier1[i];
+        }
+
+        mod = sum % 11;
+
+        var checkDigits = (mod < 2 ? 0 : 11 - mod).ToString();
+
+        cnpjTemp += checkDigits;
+
+        sum = 0;
+
+        // Get second digit
+        var multiplier2 = new[] { 6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
+
+        for (var i = 0; i < 13; i++)
+        {
+            sum += int.Parse(cnpjTemp[i].ToString()) * multiplier2[i];
+        }
+
+        mod = sum % 11;
+
+        checkDigits += (mod < 2 ? 0 : 11 - mod).ToString();
+
+        return cnpj.EndsWith(checkDigits);
     }
 }

@@ -5,19 +5,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Appel.SharpTemplate.API.Configuration
+namespace Appel.SharpTemplate.API.Configuration;
+
+public static class DatabaseConfiguration
 {
-    public static class DatabaseConfiguration
+    public static IServiceCollection AddDatabaseConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
-        public static IServiceCollection AddDatabaseConfiguration(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddDbContext<SharpTemplateContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+        services.AddPooledDbContextFactory<SharpTemplateContext>(options =>
+            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddScoped(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
-            services.AddScoped<IUserRepository, UserRepository>();
+        services.AddTransient(typeof(IRepositoryBase<>), typeof(RepositoryBase<>));
+        services.AddTransient<IUserRepository, UserRepository>();
 
-            return services;
-        }
+        return services;
     }
 }

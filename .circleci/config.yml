@@ -27,7 +27,7 @@ jobs:
           command: |
             dotnet test
       - run:
-          name: Build and push Docker image
+          name: Run build
           command: |
             curl https://cli-assets.heroku.com/install.sh | sh
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku login

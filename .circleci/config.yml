@@ -7,14 +7,7 @@ version: 2.1
 jobs:
   # Below is the definition of your job to build and test your app, you can rename and customize it as you want.
   build-and-test:
-    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
-    # Be sure to update the tag on this image to a more stable version, using latest can result in unstable builds.
-    docker:
-      - image: mcr.microsoft.com/dotnet/sdk:6.0
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_ACCESS_TOKEN
+    machine: true
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
@@ -30,7 +23,7 @@ jobs:
           name: Build and push Docker image
           command: |
             curl https://cli-assets.heroku.com/install.sh | sh
-            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
+            HEROKU_API_KEY=${HEROKU_TOKEN} heroku login
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push --app sharp-template-api web
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release --app sharp-template-api web          
 # Invoke jobs via workflows

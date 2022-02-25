@@ -29,7 +29,6 @@ jobs:
       - run:
           name: Run build and push docker image
           command: |
-            curl https://cli-assets.heroku.com/install.sh | sh
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push --app sharp-template-api web
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release --app sharp-template-api web          

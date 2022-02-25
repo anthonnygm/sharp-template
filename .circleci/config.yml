@@ -29,8 +29,7 @@ jobs:
       - run:
           name: Build and push Docker image
           command: |
-            sudo apt-get update && apt-get install -y gnupg
-            wget -qO- https://cli-assets.heroku.com/install-ubuntu.sh | sh
+            curl https://cli-assets.heroku.com/install.sh | sh
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push --app sharp-template-api web
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release --app sharp-template-api web          

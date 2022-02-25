@@ -25,27 +25,12 @@ jobs:
           command: |
             dotnet test
       - run:
-          working_directory: ~/src/Appel.SharpTemplate.API
-          name: Run restore
-          command: |
-            dotnet restore
-      - run:
-          working_directory: ~/src/Appel.SharpTemplate.API
-          name: Run build
-          command: |
-            dotnet build -c Release
-      - run:
           name: Build and push Docker image
           command: |
-            docker build --tag registry.heroku.com/sharp-template-api/api Appel.SharpTemplate.API
-
-            echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
-
-            docker push registry.heroku.com/sharp-template-api/api
-
             sudo curl https://cli-assets.heroku.com/install.sh | sh
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
-            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release --app sharp-template-api api
+            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push --app sharp-template-api api
+            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release --app sharp-template-api api          
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:

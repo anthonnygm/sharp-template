@@ -29,9 +29,10 @@ jobs:
       - run:
           name: Build and push Docker image
           command: |
+            wget -qO- https://cli-assets.heroku.com/install-ubuntu.sh | sh
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
-            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push --app sharp-template-api api
-            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release --app sharp-template-api api          
+            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push --app sharp-template-api web
+            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release --app sharp-template-api web          
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:

@@ -18,7 +18,7 @@ jobs:
          working_directory: ~/project/test/Appel.SharpTemplate.Tests
          name: Run tests
          command: |
-           dotnet test
+           dotnet.exe test
 
       # Build the docker image
       - run:

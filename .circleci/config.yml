@@ -24,6 +24,7 @@ jobs:
       - run:
           name: Run docker build
           command: |
+            apt-get install curl
             curl -fsSL https://get.docker.com/ | sh
             docker build . 
 

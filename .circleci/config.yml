@@ -23,9 +23,8 @@ jobs:
       # Build the docker image
       - run:
           name: Run docker build
-          command: |
-            
-            docker build . 
+          command: |            
+            docker build -f ~/project/src/Appel.SharpTemplate.API/Dockerfile   
 
       # Deploy to Heroku
       - heroku/install

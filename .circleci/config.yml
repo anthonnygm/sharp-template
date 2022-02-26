@@ -32,7 +32,7 @@ jobs:
           name: Run heroku deploy
           command: |
             curl https://cli-assets.heroku.com/install.sh | sh
-            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
+            docker login --username=_ --password=${HEROKU_TOKEN} registry.heroku.com
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku create -a sharp-template-api-test
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push web -a sharp-template-api-test
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release web -a sharp-template-api-test

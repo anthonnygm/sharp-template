@@ -1,19 +1,19 @@
 version: 2.1
 
 jobs:
-  # test:
-  #   docker:
-  #     - image: mcr.microsoft.com/dotnet/sdk:6.0
-  #       auth:
-  #         username: $DOCKERHUB_USER
-  #         password: $DOCKERHUB_ACCESS_TOKEN
-  #   steps:
-  #     - checkout
-  #     - run:
-  #        working_directory: ~/project/test/Appel.SharpTemplate.Tests
-  #        name: Run tests
-  #        command: |
-  #          dotnet test        
+  test:
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:6.0
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_ACCESS_TOKEN
+    steps:
+      - checkout
+      - run:
+         working_directory: ~/project/test/Appel.SharpTemplate.Tests
+         name: Run tests
+         command: |
+           dotnet test        
   deploy:
     docker:
       - image: cimg/base:2022.02 
@@ -32,20 +32,12 @@ jobs:
             curl https://cli-assets.heroku.com/install.sh | sh
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release web -a sharp-template-api
-      # - run:
-      #     name: Run heroku deploy
-      #     command: |
-      #       curl https://cli-assets.heroku.com/install.sh | sh
-      #       HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
-      #       HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push web -a sharp-template-api
-      #       HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release web -a sharp-template-api
-
 workflows:
   heroku-deploy:
     jobs:
-      # - test
+      - test
       - deploy:
-          # requires:
-          #   - test
+          requires:
+            - test
           context:
             - sharp-template-context

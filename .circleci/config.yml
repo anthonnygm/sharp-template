@@ -39,5 +39,9 @@ workflows:
       - deploy:
           requires:
             - test
+          filters:
+            branches:
+              only:
+                - master
           context:
             - sharp-template-context

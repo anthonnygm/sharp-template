@@ -26,7 +26,7 @@ jobs:
           command: |            
             docker build -f src/Appel.SharpTemplate.API/Dockerfile -t sharp-template-api .
             docker tag sharp-template-api registry.heroku.com/sharp-template-api/web
-            docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PSWD
+            docker login --username=_ --password=${HEROKU_TOKEN} registry.heroku.com
             docker push registry.heroku.com/sharp-template-api/web
       # - run:
       #     name: Run heroku deploy

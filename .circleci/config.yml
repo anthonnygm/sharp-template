@@ -25,15 +25,15 @@ jobs:
           name: Run docker build
           command: |            
             docker build -f src/Appel.SharpTemplate.API/Dockerfile -t sharp-template-api .
-            docker tag sharp-template-api registry.heroku.com/sharp-template-api
+            docker tag sharp-template-api registry.heroku.com/sharp-template-api/web
             docker login --username=_ --password=${HEROKU_TOKEN} registry.heroku.com
-            docker push registry.heroku.com/sharp-template-api
+            docker push registry.heroku.com/sharp-template-api/web
       # - run:
       #     name: Run heroku deploy
       #     command: |
       #       curl https://cli-assets.heroku.com/install.sh | sh
       #       HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
-      #       HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push -a sharp-template-api
+      #       HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push -a sharp-template-api web
       #       HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release -a sharp-template-api web
 
 workflows:

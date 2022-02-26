@@ -1,21 +1,19 @@
 version: 2.1
 
-orbs:
-  heroku: circleci/heroku@1.2.6
-  win: circleci/windows@2.4.1
-
 jobs:
   test:
-    executor:
-      name: win/default
-      shell: powershell.exe
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:6.0
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_ACCESS_TOKEN
     steps:
       - checkout
       - run:
          working_directory: ~/project/test/Appel.SharpTemplate.Tests
          name: Run tests
          command: |
-           dotnet.exe test        
+           dotnet test        
   deploy:
     docker:
       - image: cimg/base:2022.02 
@@ -27,22 +25,20 @@ jobs:
           name: Run docker build
           command: |            
             docker build -f src/Appel.SharpTemplate.API/Dockerfile .
-      - heroku/install
       - run:
           name: Run heroku deploy
           command: |
+            sudo curl https://cli-assets.heroku.com/install.sh | sh
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
-      - heroku/push-docker-image:
-          app-name: sharp-template-api
-          process-types: web
-      - heroku/release-docker-image:
-          app-name: sharp-template-api
-          process-types: web
+            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push --app sharp-template-api web
+            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release --app sharp-template-api web    
 
 workflows:
   heroku-deploy:
     jobs:
       - test
       - deploy:
+          requires:
+            - test
           context:
             - sharp-template-context

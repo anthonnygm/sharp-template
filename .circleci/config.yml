@@ -21,13 +21,13 @@ jobs:
       - setup_remote_docker:
           version: 20.10.11
       - checkout
-      # - run:
-      #     name: Run docker build
-      #     command: |            
-      #       docker build -f src/Appel.SharpTemplate.API/Dockerfile -t sharp-template-api .
-      #       docker tag sharp-template-api guilhermeappel/sharp-template-api:latest
-      #       docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PSWD
-      #       docker push guilhermeappel/sharp-template-api:latest
+      - run:
+          name: Run docker build
+          command: |            
+            docker build -f src/Appel.SharpTemplate.API/Dockerfile -t sharp-template-api .
+            # docker tag sharp-template-api guilhermeappel/sharp-template-api:latest
+            # docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PSWD
+            # docker push guilhermeappel/sharp-template-api:latest
       - run:
           name: Run heroku deploy
           command: |

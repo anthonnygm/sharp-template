@@ -1,6 +1,6 @@
-﻿namespace Appel.SharpTemplate.API.ViewModels;
+﻿namespace Appel.SharpTemplate.API.Application.Models;
 
-public class ResetPassword
+public class UserResetPasswordViewModel
 {
     public int Id { get; set; }
     public string EmailHash { get; set; }

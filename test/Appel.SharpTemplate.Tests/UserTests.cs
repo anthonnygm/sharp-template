@@ -1,10 +1,7 @@
-using Appel.SharpTemplate.API.Application.DTOs.Email;
-using Appel.SharpTemplate.API.Application.DTOs.User;
+using Appel.SharpTemplate.API.Application.Extensions;
+using Appel.SharpTemplate.API.Application.Models;
 using Appel.SharpTemplate.API.Application.Services;
-using Appel.SharpTemplate.API.Application.Validators.DTOs;
-using Appel.SharpTemplate.API.Application.Validators.ViewModels;
-using Appel.SharpTemplate.API.Extensions;
-using Appel.SharpTemplate.API.ViewModels;
+using Appel.SharpTemplate.API.Application.Validators.Models;
 using Appel.SharpTemplate.Domain.Entities;
 using Appel.SharpTemplate.Domain.Interfaces;
 using Appel.SharpTemplate.Infrastructure.Data.Repositories;
@@ -27,17 +24,17 @@ public class UserTests : DependencyInjectionTest
     public async Task UserValidate_Authenticate_Success()
     {
         var repository = GetUserRepository();
-        var service = new UserService(repository, AppSettings);
+        var service = new UserService(repository, AppSettings, default);
 
-        var userRegisterDTO = CreateDefaultUser();
+        var userRegisterViewModel = CreateDefaultUser();
 
-        var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterDTO, UserAuthenticateDTO>()));
-        var authenticateDTO = mapper.Map<UserAuthenticateDTO>(userRegisterDTO);
+        var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterViewModel, UserAuthenticateViewModel>()));
+        var authenticateViewModel = mapper.Map<UserAuthenticateViewModel>(userRegisterViewModel);
 
-        await service.RegisterAsync(userRegisterDTO);
+        await service.RegisterAsync(userRegisterViewModel);
 
-        var validator = new UserAuthenticateDTOValidator(repository, AppSettings);
-        var result = await validator.ValidateAsync(authenticateDTO);
+        var validator = new UserAuthenticateViewModelValidator(repository, AppSettings);
+        var result = await validator.ValidateAsync(authenticateViewModel);
 
         Assert.True(result.IsValid);
     }
@@ -45,7 +42,7 @@ public class UserTests : DependencyInjectionTest
     [Fact]
     public async Task UserValidate_Authenticate_Fail()
     {
-        var user = new UserAuthenticateDTO()
+        var user = new UserAuthenticateViewModel()
         {
             Email = "test_email@gmail.com",
             Password = "12345678"
@@ -53,7 +50,7 @@ public class UserTests : DependencyInjectionTest
 
         var repository = GetUserRepository();
 
-        var validator = new UserAuthenticateDTOValidator(repository, AppSettings);
+        var validator = new UserAuthenticateViewModelValidator(repository, AppSettings);
         var result = await validator.ValidateAsync(user);
 
         Assert.False(result.IsValid);
@@ -64,18 +61,18 @@ public class UserTests : DependencyInjectionTest
     public async Task UserValidate_ResetPassword_Success()
     {
         var repository = GetUserRepository();
-        var service = new UserService(repository, AppSettings);
+        var service = new UserService(repository, AppSettings, default);
 
         var user = CreateDefaultUser();
 
         await service.RegisterAsync(user);
 
         var databaseUser = await repository.GetByIdAsync(id: 1);
-        var jsonEmailToken = JsonSerializer.Serialize(new EmailTokenDTO() { Email = databaseUser?.Email, Validity = DateTime.Now.AddHours(3) });
+        var jsonEmailToken = JsonSerializer.Serialize(new EmailTokenViewModel() { Email = databaseUser?.Email, Validity = DateTime.Now.AddHours(3) });
 
-        var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<User, ResetPassword>()));
+        var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<User, UserResetPasswordViewModel>()));
 
-        var userResetPassword = mapper.Map<ResetPassword>(databaseUser);
+        var userResetPassword = mapper.Map<UserResetPasswordViewModel>(databaseUser);
         userResetPassword.EmailHash = CryptographyExtensions.Encrypt(AppSettings.Value.EmailTokenSecretKey, jsonEmailToken);
         userResetPassword.Password = "p1o2i3u4y5";
         userResetPassword.PasswordConfirmation = "p1o2i3u4y5";
@@ -93,7 +90,7 @@ public class UserTests : DependencyInjectionTest
     [Fact]
     public async Task UserValidate_ResetPassword_Fail()
     {
-        var user = new ResetPassword()
+        var user = new UserResetPasswordViewModel()
         {
             Password = "p1o2i3u4y5",
             PasswordConfirmation = "p1o2i3u4y5"
@@ -112,20 +109,20 @@ public class UserTests : DependencyInjectionTest
     public async Task UserValidate_ChangePassword_Success()
     {
         var repository = GetUserRepository();
-        var service = new UserService(repository, AppSettings);
+        var service = new UserService(repository, AppSettings, default);
 
         var user = CreateDefaultUser();
 
         await service.RegisterAsync(user);
 
-        var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterDTO, UserChangePasswordDTO>()));
+        var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterViewModel, UserChangePasswordViewModel>()));
 
-        var userChangePassword = mapper.Map<UserChangePasswordDTO>(user);
+        var userChangePassword = mapper.Map<UserChangePasswordViewModel>(user);
         userChangePassword.CurrentPassword = user.Password;
         userChangePassword.NewPassword = "p1o2i3u4y5";
         userChangePassword.NewPasswordConfirmation = "p1o2i3u4y5";
 
-        var validator = new UserChangePasswordDTOValidator(repository);
+        var validator = new UserChangePasswordViewModelValidator(repository);
         var result = await validator.ValidateAsync(userChangePassword);
 
         await service.ChangePasswordAsync(userChangePassword);
@@ -139,21 +136,21 @@ public class UserTests : DependencyInjectionTest
     public async Task UserValidate_ChangePassword_Fail()
     {
         var repository = GetUserRepository(Guid.NewGuid().ToString());
-        var service = new UserService(repository, AppSettings);
+        var service = new UserService(repository, AppSettings, default);
 
         var user = CreateDefaultUser();
 
         await service.RegisterAsync(user);
 
-        var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterDTO, UserChangePasswordDTO>()));
+        var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterViewModel, UserChangePasswordViewModel>()));
 
-        var userChangePassword = mapper.Map<UserChangePasswordDTO>(user);
+        var userChangePassword = mapper.Map<UserChangePasswordViewModel>(user);
         userChangePassword.Email = user.Email;
         userChangePassword.CurrentPassword = "p1o2i3u4y5";
         userChangePassword.NewPassword = "p1o2i3u4y5";
         userChangePassword.NewPasswordConfirmation = "p1o2i3u4y5";
 
-        var validator = new UserChangePasswordDTOValidator(repository);
+        var validator = new UserChangePasswordViewModelValidator(repository);
         var result = await validator.ValidateAsync(userChangePassword);
 
         Assert.False(result.IsValid);
@@ -168,13 +165,13 @@ public class UserTests : DependencyInjectionTest
     public async Task UserLegal_Register_InvalidPassword()
     {
         var repository = GetUserRepository();
-        var service = new UserService(repository, AppSettings);
+        var service = new UserService(repository, AppSettings, default);
 
         var user = CreateDefaultLegalUser();
         user.Password = string.Empty;
         user.PasswordConfirmation = string.Empty;
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         var passwordErrors = new Queue<ValidationFailure>(result.Errors.Where(x => x.PropertyName == "password"));
@@ -198,7 +195,7 @@ public class UserTests : DependencyInjectionTest
         var user = CreateDefaultLegalUser();
         user.PasswordConfirmation = "q1w2e3r45";
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         Assert.False(result.IsValid);
@@ -213,7 +210,7 @@ public class UserTests : DependencyInjectionTest
         var user = CreateDefaultLegalUser();
         user.CpfCnpj = "123";
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         Assert.False(result.IsValid);
@@ -231,7 +228,7 @@ public class UserTests : DependencyInjectionTest
         var user = CreateDefaultLegalUser();
         user.Email = email;
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         Assert.False(result.IsValid);
@@ -242,13 +239,13 @@ public class UserTests : DependencyInjectionTest
     public async Task UserLegal_Register_NotUnique()
     {
         var repository = GetUserRepository();
-        var service = new UserService(repository, AppSettings);
+        var service = new UserService(repository, AppSettings, default);
 
         var user = CreateDefaultLegalUser();
 
         await service.RegisterAsync(user);
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         var queue = new Queue<ValidationFailure>(result.Errors);
@@ -272,9 +269,9 @@ public class UserTests : DependencyInjectionTest
         user.ZipCode = "93700-000";
 
         var json = JsonSerializer.Serialize(user, JsonSerializerOptions);
-        user = JsonSerializer.Deserialize<UserRegisterDTO>(json, JsonSerializerOptions);
+        user = JsonSerializer.Deserialize<UserRegisterViewModel>(json, JsonSerializerOptions);
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         Assert.True(result.IsValid);
@@ -293,7 +290,7 @@ public class UserTests : DependencyInjectionTest
 
         var repository = GetUserRepository();
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         Assert.True(result.IsValid);
@@ -312,7 +309,7 @@ public class UserTests : DependencyInjectionTest
         user.Password = string.Empty;
         user.PasswordConfirmation = string.Empty;
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         var passwordErrors = new Queue<ValidationFailure>(result.Errors.Where(x => x.PropertyName == "password"));
@@ -336,7 +333,7 @@ public class UserTests : DependencyInjectionTest
         var user = CreateDefaultPhysicalUser();
         user.PasswordConfirmation = "q1w2e3r45";
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         Assert.False(result.IsValid);
@@ -351,7 +348,7 @@ public class UserTests : DependencyInjectionTest
         var user = CreateDefaultPhysicalUser();
         user.CpfCnpj = "123";
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         Assert.False(result.IsValid);
@@ -369,7 +366,7 @@ public class UserTests : DependencyInjectionTest
         var user = CreateDefaultPhysicalUser();
         user.Email = email;
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         Assert.False(result.IsValid);
@@ -380,12 +377,12 @@ public class UserTests : DependencyInjectionTest
     public async Task UserPhysical_Register_NotUnique()
     {
         var repository = GetUserRepository();
-        var service = new UserService(repository, AppSettings);
+        var service = new UserService(repository, AppSettings, default);
 
         var user = CreateDefaultPhysicalUser();
         await service.RegisterAsync(user);
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         var queue = new Queue<ValidationFailure>(result.Errors);
@@ -407,9 +404,9 @@ public class UserTests : DependencyInjectionTest
         user.ZipCode = "93700-000";
 
         var json = JsonSerializer.Serialize(user, JsonSerializerOptions);
-        user = JsonSerializer.Deserialize<UserRegisterDTO>(json, JsonSerializerOptions);
+        user = JsonSerializer.Deserialize<UserRegisterViewModel>(json, JsonSerializerOptions);
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         Assert.True(result.IsValid);
@@ -426,7 +423,7 @@ public class UserTests : DependencyInjectionTest
 
         var user = CreateDefaultPhysicalUser();
 
-        var validator = new UserRegisterDTOValidator(repository);
+        var validator = new UserRegisterViewModelValidator(repository);
         var result = await validator.ValidateAsync(user);
 
         Assert.True(result.IsValid);
@@ -440,12 +437,12 @@ public class UserTests : DependencyInjectionTest
     public async Task GenericUser_GetUserById_Success()
     {
         var repository = GetUserRepository();
-        var service = new UserService(repository, AppSettings);
+        var service = new UserService(repository, AppSettings, default);
 
         var user = CreateDefaultUser();
         await service.RegisterAsync(user);
 
-        var databaseUser = await service.GetUserByIdAsync(id: 1);
+        var databaseUser = await service.GetByIdAsync(id: 1);
 
         Assert.NotNull(databaseUser);
         Assert.Equal(user.Email, databaseUser.Email);
@@ -455,12 +452,12 @@ public class UserTests : DependencyInjectionTest
     public async Task GenericUser_GetAllUsers_Success()
     {
         var repository = GetUserRepository();
-        var service = new UserService(repository, AppSettings);
+        var service = new UserService(repository, AppSettings, default);
 
         var user = CreateDefaultUser();
         await service.RegisterAsync(user);
 
-        var databaseUsers = await service.GetAllUsersAsync();
+        var databaseUsers = await service.GetAsync();
 
         Assert.NotNull(databaseUsers);
         Assert.NotEmpty(databaseUsers);
@@ -471,7 +468,7 @@ public class UserTests : DependencyInjectionTest
     public async Task GenericUser_EditUser_Success()
     {
         var repository = GetUserRepository();
-        var service = new UserService(repository, AppSettings);
+        var service = new UserService(repository, AppSettings, default);
 
         var user = CreateDefaultUser();
         await service.RegisterAsync(user);
@@ -479,29 +476,29 @@ public class UserTests : DependencyInjectionTest
         user.City = "Zochester";
         user.Neighborhood = "Troit";
 
-        var config = new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterDTO, UserProfileDTO>());
+        var config = new MapperConfiguration(cfg => cfg.CreateMap<UserRegisterViewModel, UserProfileViewModel>());
         var mapper = new Mapper(config);
 
-        var userProfileDTO = mapper.Map<UserProfileDTO>(user);
-        userProfileDTO.Id = 1;
+        var userProfileViewModel = mapper.Map<UserProfileViewModel>(user);
+        userProfileViewModel.Id = 1;
 
-        await service.EditAsync(userProfileDTO);
+        await service.UpdateAsync(userProfileViewModel);
 
-        var databaseUser = await service.GetUserByIdAsync(1);
+        var databaseUser = await service.GetByIdAsync(1);
 
-        Assert.Equal(userProfileDTO.Name, databaseUser.Name);
-        Assert.Equal(userProfileDTO.Email, databaseUser.Email);
-        Assert.Equal(userProfileDTO.City, databaseUser.City);
-        Assert.Equal(userProfileDTO.Neighborhood, databaseUser.Neighborhood);
+        Assert.Equal(userProfileViewModel.Name, databaseUser.Name);
+        Assert.Equal(userProfileViewModel.Email, databaseUser.Email);
+        Assert.Equal(userProfileViewModel.City, databaseUser.City);
+        Assert.Equal(userProfileViewModel.Neighborhood, databaseUser.Neighborhood);
     }
 
     #endregion
 
     #region Auxiliary Methods
 
-    private static UserRegisterDTO CreateDefaultUser()
+    private static UserRegisterViewModel CreateDefaultUser()
     {
-        return new UserRegisterDTO()
+        return new UserRegisterViewModel()
         {
             Name = "Test Name",
             Email = "test_email@gmail.com",
@@ -518,7 +515,7 @@ public class UserTests : DependencyInjectionTest
         };
     }
 
-    private static UserRegisterDTO CreateDefaultLegalUser()
+    private static UserRegisterViewModel CreateDefaultLegalUser()
     {
         var user = CreateDefaultUser();
         user.CpfCnpj = "08634417000118";
@@ -530,7 +527,7 @@ public class UserTests : DependencyInjectionTest
         return user;
     }
 
-    private static UserRegisterDTO CreateDefaultPhysicalUser()
+    private static UserRegisterViewModel CreateDefaultPhysicalUser()
     {
         var user = CreateDefaultUser();
         user.IdentityDocument = "235789331";

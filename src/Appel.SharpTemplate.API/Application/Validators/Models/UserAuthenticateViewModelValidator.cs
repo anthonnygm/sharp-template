@@ -1,5 +1,5 @@
-﻿using Appel.SharpTemplate.API.Application.DTOs.User;
-using Appel.SharpTemplate.API.Extensions;
+﻿using Appel.SharpTemplate.API.Application.Extensions;
+using Appel.SharpTemplate.API.Application.Models;
 using Appel.SharpTemplate.Domain.Interfaces;
 using Appel.SharpTemplate.Infrastructure.Application;
 using FluentValidation;
@@ -8,14 +8,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Appel.SharpTemplate.API.Application.Validators.DTOs;
+namespace Appel.SharpTemplate.API.Application.Validators.Models;
 
-public class UserAuthenticateDTOValidator : AbstractValidator<UserAuthenticateDTO>
+public class UserAuthenticateViewModelValidator : AbstractValidator<UserAuthenticateViewModel>
 {
     private readonly IUserRepository _repository;
     private readonly IOptions<AppSettings> _appSettings;
 
-    public UserAuthenticateDTOValidator(IUserRepository repository, IOptions<AppSettings> appSettings)
+    public UserAuthenticateViewModelValidator(IUserRepository repository, IOptions<AppSettings> appSettings)
     {
         _repository = repository;
         _appSettings = appSettings;
@@ -24,7 +24,7 @@ public class UserAuthenticateDTOValidator : AbstractValidator<UserAuthenticateDT
             .MustAsync(BeValidUserAsync).OverridePropertyName("InvalidLogin").WithMessage("Invalid e-mail or password");
     }
 
-    public async Task<bool> BeValidUserAsync(UserAuthenticateDTO user, CancellationToken cancellationToken)
+    public async Task<bool> BeValidUserAsync(UserAuthenticateViewModel user, CancellationToken cancellationToken)
     {
         var argon2HashManager = new Argon2HashManager(_appSettings);
 

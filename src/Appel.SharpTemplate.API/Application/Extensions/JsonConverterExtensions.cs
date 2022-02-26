@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Appel.SharpTemplate.API.Extensions;
+namespace Appel.SharpTemplate.API.Application.Extensions;
 
 public class JsonConverterExtensions
 {

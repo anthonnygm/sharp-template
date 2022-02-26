@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Text;
 
-namespace Appel.SharpTemplate.API.Extensions;
+namespace Appel.SharpTemplate.API.Application.Extensions;
 
 public class Argon2HashManager
 {

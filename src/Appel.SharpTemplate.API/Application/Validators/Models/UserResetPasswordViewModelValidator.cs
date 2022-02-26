@@ -1,7 +1,6 @@
-﻿using Appel.SharpTemplate.API.Application.DTOs.Email;
+﻿using Appel.SharpTemplate.API.Application.Extensions;
+using Appel.SharpTemplate.API.Application.Models;
 using Appel.SharpTemplate.API.Application.Validators.Extensions;
-using Appel.SharpTemplate.API.Extensions;
-using Appel.SharpTemplate.API.ViewModels;
 using Appel.SharpTemplate.Domain.Interfaces;
 using Appel.SharpTemplate.Infrastructure.Application;
 using FluentValidation;
@@ -11,9 +10,9 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Appel.SharpTemplate.API.Application.Validators.ViewModels;
+namespace Appel.SharpTemplate.API.Application.Validators.Models;
 
-public class UserResetPasswordViewModelValidator : AbstractValidator<ResetPassword>
+public class UserResetPasswordViewModelValidator : AbstractValidator<UserResetPasswordViewModel>
 {
     private readonly IUserRepository _repository;
     private readonly IOptions<AppSettings> _appSettings;
@@ -35,7 +34,7 @@ public class UserResetPasswordViewModelValidator : AbstractValidator<ResetPasswo
     }
 
 
-    public async Task<bool> BeValidHashAsync(ResetPassword user, CancellationToken cancellationToken)
+    public async Task<bool> BeValidHashAsync(UserResetPasswordViewModel user, CancellationToken cancellationToken)
     {
         var databaseUser = await _repository.GetByIdAsync(user.Id);
 
@@ -45,7 +44,7 @@ public class UserResetPasswordViewModelValidator : AbstractValidator<ResetPasswo
         }
 
         var decryptedData = CryptographyExtensions.Decrypt(_appSettings.Value.EmailTokenSecretKey, user.EmailHash);
-        var emailToken = JsonSerializer.Deserialize<EmailTokenDTO>(decryptedData);
+        var emailToken = JsonSerializer.Deserialize<EmailTokenViewModel>(decryptedData);
 
         return emailToken?.Email == databaseUser.Email && emailToken?.Validity >= DateTime.Now;
     }

@@ -10,6 +10,7 @@ builder.WebHost.UseIISIntegration();
 
 builder.Services.AddDatabaseConfiguration(builder.Configuration);
 builder.Services.AddApiConfiguration(builder.Configuration);
+builder.Services.AddServicesConfiguration();
 builder.Services.AddSwaggerConfiguration();
 builder.Services.AddGraphQLConfiguration();
 builder.Services.AddCacheConfiguration();

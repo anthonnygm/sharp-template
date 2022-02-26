@@ -1,12 +1,12 @@
-﻿using Appel.SharpTemplate.API.Extensions;
+﻿using Appel.SharpTemplate.API.Application.Extensions;
 using Appel.SharpTemplate.Domain.Entities;
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Appel.SharpTemplate.API.Application.DTOs.User;
+namespace Appel.SharpTemplate.API.Application.Models;
 
-public class UserRegisterDTO
+public class UserRegisterViewModel
 {
     public string Name { get; set; }
 

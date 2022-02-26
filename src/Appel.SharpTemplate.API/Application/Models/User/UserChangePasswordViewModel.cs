@@ -1,6 +1,6 @@
-﻿namespace Appel.SharpTemplate.API.Application.DTOs.User;
+﻿namespace Appel.SharpTemplate.API.Application.Models;
 
-public class UserChangePasswordDTO
+public class UserChangePasswordViewModel
 {
     public string Email { get; set; }
     public string CurrentPassword { get; set; }

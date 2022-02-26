@@ -1,6 +1,5 @@
-﻿using Appel.SharpTemplate.API.Application.Services;
-using Appel.SharpTemplate.API.ViewModels;
-using Appel.SharpTemplate.Domain.Interfaces;
+﻿using Appel.SharpTemplate.API.Application.Interfaces;
+using Appel.SharpTemplate.API.Application.Models;
 using Appel.SharpTemplate.Infrastructure.Application;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -11,18 +10,18 @@ namespace Appel.SharpTemplate.API.Controllers.UI;
 
 public class UsersController : BaseController
 {
-    private readonly IUserRepository _repository;
+    private readonly IUserService _userService;
     private readonly IOptions<AppSettings> _appSettings;
 
-    public UsersController(IUserRepository repository, IOptions<AppSettings> appSettings)
+    public UsersController(IUserService userService, IOptions<AppSettings> appSettings)
     {
-        _repository = repository;
+        _userService = userService;
         _appSettings = appSettings;
     }
 
     [HttpPost]
     [Route("reset-password")]
-    public async Task<IActionResult> ResetPasswordAsync([FromForm] ResetPassword user)
+    public async Task<IActionResult> ResetPasswordAsync([FromForm] UserResetPasswordViewModel user)
     {
         if (!ModelState.IsValid)
         {
@@ -41,9 +40,7 @@ public class UsersController : BaseController
             return View();
         }
 
-        var userService = new UserService(_repository, _appSettings);
-
-        await userService.ResetPasswordAsync(user);
+        await _userService.ResetPasswordAsync(user);
 
         ViewBag.Message = "Password reset successfully!";
 
@@ -57,7 +54,7 @@ public class UsersController : BaseController
         var id = int.Parse(Request.Query["id"]);
         var hash = Request.Query["hash"];
 
-        return View("ResetPassword", new ResetPassword()
+        return View("ResetPassword", new UserResetPasswordViewModel()
         {
             Id = id,
             EmailHash = hash

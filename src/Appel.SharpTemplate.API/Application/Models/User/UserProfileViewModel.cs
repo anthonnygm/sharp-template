@@ -1,10 +1,10 @@
-﻿using Appel.SharpTemplate.API.Extensions;
+﻿using Appel.SharpTemplate.API.Application.Extensions;
 using Appel.SharpTemplate.Domain.Entities;
 using System.Text.Json.Serialization;
 
-namespace Appel.SharpTemplate.API.Application.DTOs.User;
+namespace Appel.SharpTemplate.API.Application.Models;
 
-public class UserProfileDTO
+public class UserProfileViewModel
 {
     public int Id { get; set; }
 

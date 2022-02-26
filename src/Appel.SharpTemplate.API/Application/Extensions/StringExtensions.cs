@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Appel.SharpTemplate.API.Extensions;
+namespace Appel.SharpTemplate.API.Application.Extensions;
 
 public static class StringExtensions
 {

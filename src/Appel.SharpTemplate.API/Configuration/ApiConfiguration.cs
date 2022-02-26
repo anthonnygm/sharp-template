@@ -1,4 +1,4 @@
-﻿using Appel.SharpTemplate.API.Application.Validators.DTOs;
+﻿using Appel.SharpTemplate.API.Application.Validators.Models;
 using Appel.SharpTemplate.Infrastructure.Application;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -29,7 +29,7 @@ public static class ApiConfiguration
             .AddFluentValidation(fv =>
             {
                 fv.DisableDataAnnotationsValidation = true;
-                fv.RegisterValidatorsFromAssemblyContaining<UserRegisterDTOValidator>();
+                fv.RegisterValidatorsFromAssemblyContaining<UserRegisterViewModelValidator>();
                 fv.ValidatorOptions.PropertyNameResolver = CamelCasePropertyNameResolver.ResolvePropertyName;
             });
 

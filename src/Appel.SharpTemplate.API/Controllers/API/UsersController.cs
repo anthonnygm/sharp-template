@@ -1,41 +1,35 @@
-﻿using Appel.SharpTemplate.API.Application.DTOs.User;
-using Appel.SharpTemplate.API.Application.Services;
+﻿using Appel.SharpTemplate.API.Application.Interfaces;
+using Appel.SharpTemplate.API.Application.Models;
 using Appel.SharpTemplate.Domain.Entities;
-using Appel.SharpTemplate.Domain.Interfaces;
 using Appel.SharpTemplate.Infrastructure.Application;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using System.Threading.Tasks;
 
 namespace Appel.SharpTemplate.API.Controllers.API;
 
 public class UsersController : BaseController
 {
-    private readonly IUserRepository _repository;
-    private readonly IOptions<AppSettings> _appSettings;
+    private readonly IUserService _userService;
 
-    public UsersController(IUserRepository repository, IOptions<AppSettings> appSettings)
+    public UsersController(IUserService userService)
     {
-        _repository = repository;
-        _appSettings = appSettings;
+        _userService = userService;
     }
 
     [HttpPost]
     [AllowAnonymous]
     [Route("authenticate")]
-    public async Task<IActionResult> AuthenticateAsync([FromBody] UserAuthenticateDTO user)
+    public async Task<IActionResult> AuthenticateAsync([FromBody] UserAuthenticateViewModel user)
     {
-        var userService = new UserService(_repository, _appSettings);
-
-        var token = await userService.AuthenticateAsync(user);
+        var token = await _userService.AuthenticateAsync(user);
 
         return Json(token);
     }
 
     [HttpPost]
     [Route("edit")]
-    public async Task<IActionResult> EditAsync([FromBody] UserProfileDTO user)
+    public async Task<IActionResult> EditAsync([FromBody] UserProfileViewModel user)
     {
         var userTokenId = int.Parse(User.Identity?.Name ?? string.Empty);
 
@@ -44,9 +38,7 @@ public class UsersController : BaseController
             return Forbid();
         }
 
-        var userService = new UserService(_repository, _appSettings);
-
-        await userService.EditAsync(user);
+        await _userService.UpdateAsync(user);
 
         return Ok();
     }
@@ -54,11 +46,9 @@ public class UsersController : BaseController
     [HttpPost]
     [AllowAnonymous]
     [Route("register")]
-    public async Task<IActionResult> RegisterAsync([FromBody] UserRegisterDTO user)
+    public async Task<IActionResult> RegisterAsync([FromBody] UserRegisterViewModel user)
     {
-        var userService = new UserService(_repository, _appSettings);
-
-        await userService.RegisterAsync(user);
+        await _userService.RegisterAsync(user);
 
         return Ok();
     }
@@ -68,20 +58,16 @@ public class UsersController : BaseController
     [Route("forgot-password")]
     public async Task<IActionResult> ForgotPasswordAsync([FromBody] string email)
     {
-        var userService = new UserService(_repository, _appSettings);
-
-        await userService.SendForgotPasswordEmailAsync(email);
+        await _userService.SendForgotPasswordEmailAsync(email);
 
         return Ok();
     }
 
     [HttpPost]
     [Route("change-password")]
-    public async Task<IActionResult> ChangePasswordAsync([FromBody] UserChangePasswordDTO user)
+    public async Task<IActionResult> ChangePasswordAsync([FromBody] UserChangePasswordViewModel user)
     {
-        var userService = new UserService(_repository, _appSettings);
-
-        await userService.ChangePasswordAsync(user);
+        await _userService.ChangePasswordAsync(user);
 
         return Ok();
     }
@@ -97,9 +83,7 @@ public class UsersController : BaseController
             return Forbid();
         }
 
-        var userService = new UserService(_repository, _appSettings);
-
-        var user = await userService.GetUserByIdAsync(id);
+        var user = await _userService.GetByIdAsync(id);
 
         return Json(user);
     }
@@ -109,9 +93,7 @@ public class UsersController : BaseController
     [AuthorizeRoles(UserRole.Admin)]
     public async Task<IActionResult> GetAllUsersAsync()
     {
-        var userService = new UserService(_repository, _appSettings);
-
-        var users = await userService.GetAllUsersAsync();
+        var users = await _userService.GetAsync();
 
         return Json(users);
     }

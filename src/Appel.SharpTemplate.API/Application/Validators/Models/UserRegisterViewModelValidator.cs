@@ -1,6 +1,6 @@
-﻿using Appel.SharpTemplate.API.Application.DTOs.User;
+﻿using Appel.SharpTemplate.API.Application.Extensions;
+using Appel.SharpTemplate.API.Application.Models;
 using Appel.SharpTemplate.API.Application.Validators.Extensions;
-using Appel.SharpTemplate.API.Extensions;
 using Appel.SharpTemplate.Domain.Entities;
 using Appel.SharpTemplate.Domain.Interfaces;
 using FluentValidation;
@@ -8,13 +8,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Appel.SharpTemplate.API.Application.Validators.DTOs;
+namespace Appel.SharpTemplate.API.Application.Validators.Models;
 
-public class UserRegisterDTOValidator : AbstractValidator<UserRegisterDTO>
+public class UserRegisterViewModelValidator : AbstractValidator<UserRegisterViewModel>
 {
     private readonly IUserRepository _repository;
 
-    public UserRegisterDTOValidator(IUserRepository repository)
+    public UserRegisterViewModelValidator(IUserRepository repository)
     {
         _repository = repository;
 

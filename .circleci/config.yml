@@ -2,29 +2,31 @@ version: 2.1
 
 orbs:
   heroku: circleci/heroku@1.2.6
-  windows: circleci/windows@2.4.1
+  win: circleci/windows@2.4.1
 
 jobs:
-  build-test-deploy:
+  test:
     executor:
       name: win/default
       shell: powershell.exe
-   
     steps:
-      # - setup_remote_docker:
-      #     version: 20.10.11
-      - checkout      
+      - checkout
       - run:
          working_directory: ~/project/test/Appel.SharpTemplate.Tests
          name: Run tests
          command: |
-           dotnet.exe test
-
+           dotnet.exe test        
+  deploy:
+    docker:
+      - image: cimg/base:2022.02 
+    steps:
+      - setup_remote_docker:
+          version: 20.10.11
+      - checkout      
       - run:
           name: Run docker build
           command: |            
             docker build -f src/Appel.SharpTemplate.API/Dockerfile .
-
       - heroku/install
       - run:
           name: Run heroku deploy
@@ -38,6 +40,7 @@ jobs:
 workflows:
   heroku-deploy:
     jobs:
-      - build-test-deploy:
+      - test
+      - deploy:
           context:
             - sharp-template-context

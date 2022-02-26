@@ -22,7 +22,7 @@ jobs:
     steps:
       - setup_remote_docker:
           version: 20.10.11
-      - checkout      
+      - checkout
       - run:
           name: Run docker build
           command: |            
@@ -31,10 +31,12 @@ jobs:
       - run:
           name: Run heroku deploy
           command: |
-            heroku container:login
+            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
       - heroku/push-docker-image:
+          app-name: sharp-template-api
           process-types: web
       - heroku/release-docker-image:
+          app-name: sharp-template-api
           process-types: web
 
 workflows:

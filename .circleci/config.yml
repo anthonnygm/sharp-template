@@ -29,6 +29,7 @@ jobs:
           command: |            
             docker build -f src/Appel.SharpTemplate.API/Dockerfile -t sharp-template-api .
             docker tag sharp-template-api guilhermeappel/sharp-template-api:latest
+            docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PSWD
             docker push guilhermeappel/sharp-template-api:latest
       - run:
           name: Run heroku deploy

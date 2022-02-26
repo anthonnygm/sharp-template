@@ -11,6 +11,7 @@ C# .NET Core Template repository developed by using **SOLID** principles.
 - SQL Server
 - Swagger UI
 - GraphQL (with HotChocolate)
+- CircleCI (CI/CD)
 - JWT Authentication
 - Docker
 - Docker Compose

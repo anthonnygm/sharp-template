@@ -17,24 +17,21 @@ jobs:
   deploy:
     docker:
       - image: cimg/base:2022.02 
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_ACCESS_TOKEN
     steps:
       - setup_remote_docker:
           version: 20.10.11
       - checkout
-      - run:
-          name: Run docker build
-          command: |            
-            docker build -f src/Appel.SharpTemplate.API/Dockerfile -t sharp-template-api .
-            docker tag sharp-template-api guilhermeappel/sharp-template-api:latest
-            docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PSWD
-            docker push guilhermeappel/sharp-template-api:latest
+      # - run:
+      #     name: Run docker build
+      #     command: |            
+      #       docker build -f src/Appel.SharpTemplate.API/Dockerfile -t sharp-template-api .
+      #       docker tag sharp-template-api guilhermeappel/sharp-template-api:latest
+      #       docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PSWD
+      #       docker push guilhermeappel/sharp-template-api:latest
       - run:
           name: Run heroku deploy
           command: |
-            sudo curl https://cli-assets.heroku.com/install.sh | sh
+            curl https://cli-assets.heroku.com/install.sh | sh
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push --app sharp-template-api web
             HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release --app sharp-template-api web    

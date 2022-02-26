@@ -11,9 +11,9 @@ namespace Appel.SharpTemplate.API.Controllers.UI;
 public class UsersController : BaseController
 {
     private readonly IUserService _userService;
-    private readonly IOptions<AppSettings> _appSettings;
+    private readonly IOptionsMonitor<AppSettings> _appSettings;
 
-    public UsersController(IUserService userService, IOptions<AppSettings> appSettings)
+    public UsersController(IUserService userService, IOptionsMonitor<AppSettings> appSettings)
     {
         _userService = userService;
         _appSettings = appSettings;

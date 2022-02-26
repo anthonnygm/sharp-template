@@ -13,9 +13,9 @@ namespace Appel.SharpTemplate.API.Application.Validators.Models;
 public class UserAuthenticateViewModelValidator : AbstractValidator<UserAuthenticateViewModel>
 {
     private readonly IUserRepository _repository;
-    private readonly IOptions<AppSettings> _appSettings;
+    private readonly IOptionsMonitor<AppSettings> _appSettings;
 
-    public UserAuthenticateViewModelValidator(IUserRepository repository, IOptions<AppSettings> appSettings)
+    public UserAuthenticateViewModelValidator(IUserRepository repository, IOptionsMonitor<AppSettings> appSettings)
     {
         _repository = repository;
         _appSettings = appSettings;

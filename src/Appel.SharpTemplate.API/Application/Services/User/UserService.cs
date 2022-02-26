@@ -22,9 +22,9 @@ public class UserService : EmailBase, IUserService
 {
     private readonly IUserRepository _repository;
     private readonly IEmailService _emailService;
-    private readonly IOptions<AppSettings> _appSettings;
+    private readonly IOptionsMonitor<AppSettings> _appSettings;
 
-    public UserService(IUserRepository repository, IOptions<AppSettings> appSettings, IEmailService emailService)
+    public UserService(IUserRepository repository, IOptionsMonitor<AppSettings> appSettings, IEmailService emailService)
     {
         _repository = repository;
         _appSettings = appSettings;
@@ -35,7 +35,7 @@ public class UserService : EmailBase, IUserService
     {
         var jwtTokenHandler = new JwtSecurityTokenHandler();
 
-        var key = Encoding.ASCII.GetBytes(_appSettings.Value.AuthTokenSecretKey);
+        var key = Encoding.ASCII.GetBytes(_appSettings.CurrentValue.AuthTokenSecretKey);
 
         var databaseUser = (await _repository.GetAsync(x => x.Email == user.Email)).FirstOrDefault();
 
@@ -145,7 +145,7 @@ public class UserService : EmailBase, IUserService
         var message = await LoadEmailTemplateAsync("email-reset-password");
 
         var jsonEmailToken = JsonSerializer.Serialize(new EmailTokenViewModel() { Email = email, Validity = DateTime.Now.AddHours(3) });
-        var emailHash = CryptographyExtensions.Encrypt(_appSettings.Value.EmailTokenSecretKey, jsonEmailToken);
+        var emailHash = CryptographyExtensions.Encrypt(_appSettings.CurrentValue.EmailTokenSecretKey, jsonEmailToken);
 
         message = message
             .Replace("{userId}", databaseUser.Id.ToString())

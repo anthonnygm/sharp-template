@@ -73,7 +73,7 @@ public class UserTests : DependencyInjectionTest
         var mapper = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<User, UserResetPasswordViewModel>()));
 
         var userResetPassword = mapper.Map<UserResetPasswordViewModel>(databaseUser);
-        userResetPassword.EmailHash = CryptographyExtensions.Encrypt(AppSettings.Value.EmailTokenSecretKey, jsonEmailToken);
+        userResetPassword.EmailHash = CryptographyExtensions.Encrypt(AppSettings.CurrentValue.EmailTokenSecretKey, jsonEmailToken);
         userResetPassword.Password = "p1o2i3u4y5";
         userResetPassword.PasswordConfirmation = "p1o2i3u4y5";
 

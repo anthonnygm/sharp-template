@@ -10,7 +10,7 @@ namespace Appel.SharpTemplate.UnitTests;
 
 public abstract class DependencyInjectionTest
 {
-    protected readonly IOptions<AppSettings> AppSettings;
+    protected readonly IOptionsMonitor<AppSettings> AppSettings;
     protected readonly JsonSerializerOptions JsonSerializerOptions;
 
     protected DependencyInjectionTest()
@@ -31,7 +31,7 @@ public abstract class DependencyInjectionTest
 
         services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
 
-        AppSettings = services.BuildServiceProvider().GetRequiredService<IOptions<AppSettings>>();
+        AppSettings = services.BuildServiceProvider().GetRequiredService<IOptionsMonitor<AppSettings>>();
 
         JsonSerializerOptions = new JsonSerializerOptions()
         {

@@ -1,6 +1,7 @@
 ﻿using Appel.SharpTemplate.API.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,8 @@ builder.Services.AddServicesConfiguration();
 builder.Services.AddSwaggerConfiguration();
 builder.Services.AddGraphQLConfiguration();
 builder.Services.AddCacheConfiguration();
+
+builder.Configuration.AddEnvironmentVariables();
 
 var app = builder.Build();
 

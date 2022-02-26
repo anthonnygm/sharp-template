@@ -15,9 +15,9 @@ namespace Appel.SharpTemplate.API.Application.Validators.Models;
 public class UserResetPasswordViewModelValidator : AbstractValidator<UserResetPasswordViewModel>
 {
     private readonly IUserRepository _repository;
-    private readonly IOptions<AppSettings> _appSettings;
+    private readonly IOptionsMonitor<AppSettings> _appSettings;
 
-    public UserResetPasswordViewModelValidator(IUserRepository repository, IOptions<AppSettings> appSettings)
+    public UserResetPasswordViewModelValidator(IUserRepository repository, IOptionsMonitor<AppSettings> appSettings)
     {
         _repository = repository;
         _appSettings = appSettings;
@@ -43,7 +43,7 @@ public class UserResetPasswordViewModelValidator : AbstractValidator<UserResetPa
             return false;
         }
 
-        var decryptedData = CryptographyExtensions.Decrypt(_appSettings.Value.EmailTokenSecretKey, user.EmailHash);
+        var decryptedData = CryptographyExtensions.Decrypt(_appSettings.CurrentValue.EmailTokenSecretKey, user.EmailHash);
         var emailToken = JsonSerializer.Deserialize<EmailTokenViewModel>(decryptedData);
 
         return emailToken?.Email == databaseUser.Email && emailToken?.Validity >= DateTime.Now;

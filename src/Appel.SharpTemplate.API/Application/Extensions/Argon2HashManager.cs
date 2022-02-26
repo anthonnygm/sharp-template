@@ -8,9 +8,9 @@ namespace Appel.SharpTemplate.API.Application.Extensions;
 
 public class Argon2HashManager
 {
-    private readonly IOptions<AppSettings> _appSettings;
+    private readonly IOptionsMonitor<AppSettings> _appSettings;
 
-    public Argon2HashManager(IOptions<AppSettings> appSettings)
+    public Argon2HashManager(IOptionsMonitor<AppSettings> appSettings)
     {
         _appSettings = appSettings;
     }
@@ -19,7 +19,7 @@ public class Argon2HashManager
     {
         var argon2 = new Argon2id(Encoding.UTF8.GetBytes(value))
         {
-            Salt = Encoding.ASCII.GetBytes(_appSettings.Value.Argon2PasswordKey),
+            Salt = Encoding.ASCII.GetBytes(_appSettings.CurrentValue.Argon2PasswordKey),
             Iterations = 2,
             DegreeOfParallelism = 2,
             MemorySize = 128 * 128

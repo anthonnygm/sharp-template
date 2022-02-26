@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build-test-deploy:
     docker:
-      - image: cimg/base:latest
+      - image: cimg/base:2022.02
         auth:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_ACCESS_TOKEN

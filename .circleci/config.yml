@@ -6,8 +6,10 @@ orbs:
 
 jobs:
   build-test-deploy:
-    docker:
-      - image: cimg/base:2022.02
+    executor:
+      name: win/default
+      shell: powershell.exe
+   
     steps:
       # - setup_remote_docker:
       #     version: 20.10.11

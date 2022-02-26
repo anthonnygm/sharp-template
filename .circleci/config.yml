@@ -21,20 +21,20 @@ jobs:
       - setup_remote_docker:
           version: 20.10.11
       - checkout
-      # - run:
-      #     name: Run docker build
-      #     command: |            
-      #       docker build -f src/Appel.SharpTemplate.API/Dockerfile -t sharp-template-api .
-      #       docker tag sharp-template-api guilhermeappel/sharp-template-api:latest
-      #       docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PSWD
-      #       docker push guilhermeappel/sharp-template-api:latest
       - run:
-          name: Run heroku deploy
-          command: |
-            curl https://cli-assets.heroku.com/install.sh | sh
-            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
-            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push -a sharp-template-api
-            HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release -a sharp-template-api web
+          name: Run docker build
+          command: |            
+            docker build -f src/Appel.SharpTemplate.API/Dockerfile -t sharp-template-api .
+            docker tag sharp-template-api registry.heroku.com/sharp-template-api/web
+            docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PSWD
+            docker push registry.heroku.com/sharp-template-api/web
+      # - run:
+      #     name: Run heroku deploy
+      #     command: |
+      #       curl https://cli-assets.heroku.com/install.sh | sh
+      #       HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:login
+      #       HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:push -a sharp-template-api
+      #       HEROKU_API_KEY=${HEROKU_TOKEN} heroku container:release -a sharp-template-api web
 
 workflows:
   heroku-deploy:

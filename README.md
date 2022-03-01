@@ -1,3 +1,4 @@
+
 # Sharp Template
 
 C# .NET Core Template repository developed by using **SOLID** principles.
@@ -26,9 +27,23 @@ C# .NET Core Template repository developed by using **SOLID** principles.
 - Domain Driven Design
 - Repository & Generic Repository
 
+## Live Example
+
+### Swagger UI
+
+http://sharp-template-api.herokuapp.com/swagger/index.html
+
+### GraphQL Playground
+
+http://sharp-template-api.herokuapp.com/graphql
+
+## Deploy Docker
+
+- Run the command `docker-compose up -d --build`inside the "docker" folder. It will compile the application for release wi all the necessary files and run at http://localhost:7701/. (using the settings contained in the appsettings.json file)
+
 ## Deploy Test
 
-- Run file `test-sharp-template.bat`, it will compile the application for release with all necessary files and run at http://localhost:5000. (using the settings contained in the appsettings.json file)
+- Run file `test-sharp-template.bat`, it will compile the application for release with all necessary files and run at http://localhost:5000/. (using the settings contained in the appsettings.json file)
 
 ## Environment settings
 

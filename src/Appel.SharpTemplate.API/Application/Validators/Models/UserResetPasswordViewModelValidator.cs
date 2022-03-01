@@ -36,6 +36,11 @@ public class UserResetPasswordViewModelValidator : AbstractValidator<UserResetPa
 
     public async Task<bool> BeValidHashAsync(UserResetPasswordViewModel user, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrEmpty(user.EmailHash))
+        {
+            return false;
+        }
+
         var databaseUser = await _repository.GetByIdAsync(user.Id);
 
         if (databaseUser == null)

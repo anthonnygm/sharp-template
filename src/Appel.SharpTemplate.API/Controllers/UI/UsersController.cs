@@ -49,11 +49,8 @@ public class UsersController : BaseController
 
     [HttpGet]
     [Route("reset-password")]
-    public IActionResult ResetPasswordAsync()
+    public IActionResult ResetPasswordAsync([FromQuery] int id, [FromQuery] string hash)
     {
-        var id = int.Parse(Request.Query["id"]);
-        var hash = Request.Query["hash"];
-
         return View("ResetPassword", new UserResetPasswordViewModel()
         {
             Id = id,

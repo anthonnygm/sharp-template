@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -84,6 +85,17 @@ public static class ApiConfiguration
                             .AllowAnyHeader());
             });
 
+        services
+            .AddHttpsRedirection(options => { options.HttpsPort = 443; });
+
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        });
+
         return services;
     }
 
@@ -92,6 +104,12 @@ public static class ApiConfiguration
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
+        }
+
+        if (app.Environment.IsProduction())
+        {
+            app.UseForwardedHeaders();
+            app.UseHttpsRedirection();
         }
 
         app.UseExceptionHandler(c => c.Run(async context =>
@@ -103,7 +121,6 @@ public static class ApiConfiguration
             await context.Response.WriteAsJsonAsync(response);
         }));
 
-        app.UseHttpsRedirection();
         app.UseCors("Total");
         app.UseRouting();
 

@@ -19,4 +19,5 @@ RUN dotnet publish "Appel.SharpTemplate.API.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+ADD /src/Appel.SharpTemplate.Infrastructure/Application/EmailTemplates /app/EmailTemplates/
 CMD ASPNETCORE_URLS=http://*:$PORT dotnet Appel.SharpTemplate.API.dll

@@ -6,10 +6,9 @@ services:
             context: ../
             dockerfile: ./src/Appel.SharpTemplate.API/Dockerfile   
         ports:
-            - 7701:80
-            - 7702:443
+            - ${DEBUG_PORT}:80
         environment:
-            - ASPNETCORE_ENVIRONMENT=Development
+            - ASPNETCORE_ENVIRONMENT=Docker
         depends_on:
             - db
     db:

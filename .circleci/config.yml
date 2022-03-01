@@ -13,7 +13,7 @@ jobs:
          working_directory: ~/project/test/Appel.SharpTemplate.Tests
          name: Run tests
          command: |
-           dotnet test        
+           dotnet test
   deploy:
     docker:
       - image: cimg/base:2022.02 
@@ -24,9 +24,9 @@ jobs:
       - run:
           name: Run docker build
           command: |
-            docker build -f src/Appel.SharpTemplate.API/Dockerfile -t sharp-template-api .          
+            docker build -f src/Appel.SharpTemplate.API/Dockerfile -t sharp-template-api .
             docker login --username=_ --password=${HEROKU_TOKEN} registry.heroku.com
-            docker tag sharp-template-api registry.heroku.com/sharp-template-api/web            
+            docker tag sharp-template-api registry.heroku.com/sharp-template-api/web
             docker push registry.heroku.com/sharp-template-api/web
 
             curl https://cli-assets.heroku.com/install.sh | sh

@@ -27,7 +27,7 @@ public class UsersController : BaseController
         return Json(token);
     }
 
-    [HttpPost]
+    [HttpPut]
     [Route("edit")]
     public async Task<IActionResult> EditAsync([FromBody] UserProfileViewModel user)
     {
@@ -63,7 +63,7 @@ public class UsersController : BaseController
         return Ok();
     }
 
-    [HttpPost]
+    [HttpPatch]
     [Route("change-password")]
     public async Task<IActionResult> ChangePasswordAsync([FromBody] UserChangePasswordViewModel user)
     {
@@ -89,7 +89,6 @@ public class UsersController : BaseController
     }
 
     [HttpGet]
-    [Route("list-all")]
     [AuthorizeRoles(UserRole.Admin)]
     public async Task<IActionResult> GetAllUsersAsync()
     {

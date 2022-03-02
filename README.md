@@ -9,7 +9,7 @@ C# .NET Core Template repository developed by using **SOLID** principles.
 - .NET Core 6
 - EF Core 6
 - Razor Pages
-- SQL Server
+- PostgreSQL
 - Swagger UI
 - GraphQL (with HotChocolate)
 - CircleCI (CI/CD)
